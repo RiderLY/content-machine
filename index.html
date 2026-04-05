@@ -198,7 +198,13 @@
         </div>
     </div>
 
-    <script> const SUPABASE_URL = "https://ltrglnjbsyoelkagqbbh.supabase.co"; const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // твой длинный ключ const WEBHOOK_URL = "https://hook.eu1.make.com/m64x9tlp6fg73uf9yxan9swrb80th85o"; const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    <script>
+        // ИСПРАВЛЕННЫЙ БЛОК ПЕРЕМЕННЫХ:
+        const SUPABASE_URL = "https://ltrglnjbsyoelkagqbbh.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // <-- ВСТАВЬ СЮДА СВОЙ РЕАЛЬНЫЙ КЛЮЧ!
+        const WEBHOOK_URL = "https://hook.eu1.make.com/m64x9tlp6fg73uf9yxan9swrb80th85o"; 
+        
+        const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         let user = null, posts = [], currentEditingId = null, selectedFile = null, mediaToRemove = null;
         let currentDate = new Date();
@@ -536,5 +542,3 @@
     </script>
 </body>
 </html>
-
-
