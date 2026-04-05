@@ -15,19 +15,30 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 25px 0; }
         .nav-item { padding: 14px 25px; color: var(--text-muted); cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; }
+        .nav-item:hover { color: var(--text-main); background: rgba(255,255,255,0.02); }
         .nav-item.active { color: var(--btn-light); background: rgba(192, 132, 252, 0.08); border-right: 3px solid var(--accent-glow); }
+        .divider { margin: 15px 25px; border-top: 1px solid var(--border-color); }
 
+        /* Main Content */
         .main-content { flex: 1; padding: 40px; overflow-y: auto; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 20px; }
-        .cal-day { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 16px; min-height: 140px; padding: 15px; position: relative; cursor: default; }
-        .day-num { font-size: 14px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
 
-        /* Плашка поста в календаре */
+        /* Calendar */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 20px; }
+        .cal-day { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 16px; min-height: 140px; padding: 15px; position: relative; }
+        .day-num { font-size: 14px; font-weight: 800; color: var(--text-muted); margin-bottom: 8px; }
         .post-chip { background: var(--bg-input); font-size: 11px; padding: 6px 10px; border-radius: 8px; border-left: 3px solid var(--accent-glow); margin-top: 5px; color: var(--text-main); cursor: pointer; transition: 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .post-chip:hover { background: #2d2d3d; transform: translateX(3px); }
 
+        /* List View */
+        .list-card { background: var(--bg-panel); padding: 20px; border-radius: 14px; border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; margin-bottom: 12px; }
+        .list-card:hover { border-color: var(--accent-glow); transform: translateY(-2px); }
+
+        /* Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal { background: var(--bg-sidebar); width: 850px; border-radius: 24px; border: 1px solid var(--border-color); overflow: hidden; display: flex; flex-direction: column; }
         .modal-grid { display: grid; grid-template-columns: 1.4fr 1fr; }
@@ -39,7 +50,7 @@
         .plat-btn { padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; text-align: center; font-size: 12px; color: var(--text-muted); }
         .plat-btn.active { border-color: var(--accent-glow); color: var(--btn-light); background: rgba(192, 132, 252, 0.1); }
 
-        .upload-zone { border: 2px dashed var(--border-color); padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; margin-bottom: 15px; color: var(--text-muted); font-size: 13px; }
+        .upload-zone { border: 2px dashed var(--border-color); padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; margin-bottom: 15px; color: var(--text-muted); font-size: 13px; transition: 0.2s; }
         .upload-zone:hover { border-color: var(--accent-glow); color: white; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg-main); z-index: 5000; display: flex; align-items: center; justify-content: center; }
@@ -58,29 +69,52 @@
 
     <div class="sidebar">
         <div style="padding: 0 25px 40px; font-weight: 900; color: var(--btn-light); font-size: 20px;">MACHINE PRO</div>
-        <div class="nav-item active">🗓 Публикации</div>
-        <div class="nav-item">📊 Аналитика</div>
-        <div class="nav-item">💡 Генератор идей</div>
+        
+        <div class="nav-item active" onclick="switchView('calendar', this)">🗓 Публикации</div>
+        <div class="nav-item" onclick="switchView('analytics', this)">📊 Аналитика</div>
+        <div class="nav-item" onclick="switchView('ideas', this)">💡 Генератор идей</div>
+        
+        <div class="divider"></div>
+        <div class="nav-item" onclick="switchView('list', this)">📋 Запланированные</div>
+
+        <div style="margin-top: auto; padding: 25px;">
+            <button onclick="logout()" style="background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 10px; width: 100%; border-radius: 10px; cursor: pointer;">Выход</button>
+        </div>
     </div>
 
     <div class="main-content" id="app-body" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-            <h1 style="font-size: 28px;">Апрель 2026</h1>
-            <button class="action" style="width: auto; padding: 12px 30px;" onclick="openModal()">+ Новый пост</button>
+        
+        <div id="v-calendar" class="view-section active">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1 style="font-size: 28px;">Апрель 2026</h1>
+                <button class="action" style="width: auto; padding: 12px 30px;" onclick="openModal()">+ Новый пост</button>
+            </div>
+            <div class="calendar-grid" id="grid"></div>
         </div>
-        <div class="calendar-grid" id="grid"></div>
+
+        <div id="v-list" class="view-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h1 style="font-size: 28px;">Все публикации</h1>
+                <button class="action" style="width: auto; padding: 12px 30px;" onclick="openModal()">+ Новый пост</button>
+            </div>
+            <div id="listViewContainer">
+                </div>
+        </div>
+
+        <div id="v-analytics" class="view-section"><h1 style="font-size: 28px;">📊 Аналитика</h1></div>
+        <div id="v-ideas" class="view-section"><h1 style="font-size: 28px;">💡 Генератор идей</h1></div>
     </div>
 
     <div class="modal-overlay" id="postModal">
         <div class="modal">
             <div style="padding: 20px 30px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <h2 id="modalTitle">Новая публикация</h2>
-                <span style="cursor:pointer; font-size: 28px;" onclick="closeModal()">&times;</span>
+                <span style="cursor:pointer; font-size: 28px; color: var(--text-muted);" onclick="closeModal()">&times;</span>
             </div>
             <div class="modal-grid">
                 <div style="padding: 30px; border-right: 1px solid var(--border-color);">
                     <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                        📁 <span id="fileNameDisplay">Нажмите, чтобы загрузить медиа</span>
+                        📁 <span id="fileNameDisplay">Нажмите, чтобы прикрепить медиа</span>
                         <input type="file" id="fileInput" hidden onchange="document.getElementById('fileNameDisplay').innerText = this.files[0].name">
                     </div>
                     <textarea id="mainText" rows="6" placeholder="Текст поста..."></textarea>
@@ -88,14 +122,14 @@
                         <div class="plat-btn" onclick="togglePlat(this)">Instagram</div>
                         <div class="plat-btn" onclick="togglePlat(this)">TikTok</div>
                         <div class="plat-btn" onclick="togglePlat(this)">Telegram</div>
-                        <div class="plat-btn" onclick="togglePlat(this)">YouTube</div>
+                        <div class="plat-btn" onclick="togglePlat(this)">YouTube Shorts</div>
                     </div>
                 </div>
                 <div style="padding: 30px; background: var(--bg-panel);">
-                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 8px;">ДАТА И ВРЕМЯ</label>
+                    <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 8px; font-weight: bold;">ДАТА И ВРЕМЯ</label>
                     <input type="datetime-local" id="postDate">
-                    <button class="action" id="saveBtn" onclick="savePost()">Сохранить в очередь</button>
-                    <button class="delete" id="deleteBtn" onclick="deletePost()">Удалить пост</button>
+                    <button class="action" id="saveBtn" onclick="savePost()" style="margin-top: 20px;">Сохранить в очередь</button>
+                    <button class="delete" id="deleteBtn" onclick="deletePost()">🗑 Удалить публикацию</button>
                 </div>
             </div>
         </div>
@@ -115,25 +149,75 @@
         }
 
         db.auth.onAuthStateChange((event, session) => {
-            if (session) { user = session.user; document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-body').style.display = 'block'; loadData(); }
+            if (session) { 
+                user = session.user; 
+                document.getElementById('auth-screen').style.display = 'none'; 
+                document.getElementById('app-body').style.display = 'block'; 
+                loadData(); 
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex'; 
+                document.getElementById('app-body').style.display = 'none';
+            }
         });
 
-        async function loadData() {
-            const { data } = await db.from('posts').select('*').eq('user_id', user.id);
-            posts = data || [];
-            renderCalendar();
+        function logout() { db.auth.signOut(); }
+
+        // Переключение вкладок меню
+        function switchView(id, el) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById('v-' + id).classList.add('active');
         }
 
+        async function loadData() {
+            const { data } = await db.from('posts').select('*').eq('user_id', user.id).order('post_date', { ascending: true });
+            posts = data || [];
+            renderCalendar();
+            renderListView();
+        }
+
+        // Рендер Календаря
         function renderCalendar() {
             const grid = document.getElementById('grid');
             grid.innerHTML = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d => `<div style="text-align:center; font-size:11px; color:var(--text-muted); font-weight:800; margin-bottom:10px;">${d}</div>`).join('');
-            const daysInMonth = 30, startOffset = 2;
+            
+            const daysInMonth = 30, startOffset = 2; // Апрель 2026
             for (let i = 0; i < startOffset; i++) grid.innerHTML += '<div class="cal-day" style="border:none; background:none;"></div>';
+            
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateStr = `2026-04-${String(d).padStart(2, '0')}`;
-                const dayPosts = posts.filter(p => p.post_date.includes(dateStr));
-                grid.innerHTML += `<div class="cal-day"><div class="day-num">${d}</div>${dayPosts.map(p => `<div class="post-chip" onclick="editPost('${p.id}')">${p.text}</div>`).join('')}</div>`;
+                const dayPosts = posts.filter(p => p.post_date && p.post_date.includes(dateStr));
+                
+                grid.innerHTML += `<div class="cal-day">
+                    <div class="day-num">${d}</div>
+                    ${dayPosts.map(p => `<div class="post-chip" onclick="editPost('${p.id}')">${p.text || 'Без текста'}</div>`).join('')}
+                </div>`;
             }
+        }
+
+        // Рендер Списка Запланированных
+        function renderListView() {
+            const container = document.getElementById('listViewContainer');
+            if (posts.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-muted); text-align: center; margin-top: 50px;">Очередь публикаций пуста</div>';
+                return;
+            }
+
+            container.innerHTML = posts.map(p => {
+                const dateStr = p.post_date ? new Date(p.post_date).toLocaleString('ru-RU', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }) : 'Дата не указана';
+                const platsStr = (p.platforms || []).join(', ') || 'Соцсети не выбраны';
+                
+                return `
+                <div class="list-card" onclick="editPost('${p.id}')">
+                    <div>
+                        <div style="color: var(--accent-glow); font-size: 13px; font-weight: bold; margin-bottom: 6px;">🕒 ${dateStr}</div>
+                        <div style="font-size: 15px; margin-bottom: 6px;">${p.text || 'Без текста'}</div>
+                        <div style="font-size: 12px; color: var(--text-muted);">📱 ${platsStr}</div>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 24px; padding-left: 20px;">›</div>
+                </div>`;
+            }).join('');
         }
 
         function togglePlat(el) { el.classList.toggle('active'); }
@@ -143,6 +227,7 @@
             document.getElementById('modalTitle').innerText = "Новая публикация";
             document.getElementById('mainText').value = "";
             document.getElementById('postDate').value = "";
+            document.getElementById('fileNameDisplay').innerText = "Нажмите, чтобы прикрепить медиа";
             document.getElementById('deleteBtn').style.display = "none";
             document.querySelectorAll('.plat-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('postModal').style.display = 'flex';
@@ -151,13 +236,18 @@
         function editPost(id) {
             const post = posts.find(p => p.id === id);
             currentEditingId = id;
-            document.getElementById('modalTitle').innerText = "Редактировать пост";
-            document.getElementById('mainText').value = post.text;
-            document.getElementById('postDate').value = post.post_date.slice(0, 16);
+            document.getElementById('modalTitle').innerText = "Редактировать публикацию";
+            document.getElementById('mainText').value = post.text || "";
+            document.getElementById('postDate').value = post.post_date ? post.post_date.slice(0, 16) : "";
+            document.getElementById('fileNameDisplay').innerText = "Нажмите, чтобы изменить медиа";
             document.getElementById('deleteBtn').style.display = "block";
+            
+            // Предохранитель для старых постов, где нет соцсетей
+            const safePlatforms = post.platforms || []; 
             document.querySelectorAll('.plat-btn').forEach(b => {
-                b.classList.toggle('active', post.platforms.includes(b.innerText));
+                b.classList.toggle('active', safePlatforms.includes(b.innerText));
             });
+            
             document.getElementById('postModal').style.display = 'flex';
         }
 
@@ -168,17 +258,19 @@
             const date = document.getElementById('postDate').value;
             const plats = Array.from(document.querySelectorAll('.plat-btn.active')).map(b => b.innerText);
             
+            if (!date) return alert("Пожалуйста, выбери дату публикации!");
+
             const postData = { user_id: user.id, text, post_date: date, platforms: plats, status: 'pending' };
 
             const { error } = currentEditingId 
                 ? await db.from('posts').update(postData).eq('id', currentEditingId)
                 : await db.from('posts').insert([postData]);
 
-            if (!error) { closeModal(); loadData(); }
+            if (!error) { closeModal(); loadData(); } else { alert(error.message); }
         }
 
         async function deletePost() {
-            if (confirm("Удалить этот пост?")) {
+            if (confirm("Точно удалить публикацию?")) {
                 const { error } = await db.from('posts').delete().eq('id', currentEditingId);
                 if (!error) { closeModal(); loadData(); }
             }
