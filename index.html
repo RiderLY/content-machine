@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina OS v2.6</title>
+    <title>Lumina OS v2.7</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
@@ -39,7 +39,7 @@
         .day-num.today { color: var(--accent-glow); }
         .post-chip { background: var(--bg-input); font-size: 11px; padding: 6px 10px; border-radius: 8px; border-left: 3px solid var(--accent-glow); margin-top: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Modal Elements */
+        /* Modal */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); }
         .modal { background: var(--bg-sidebar); width: 900px; max-height: 90vh; border-radius: 24px; border: 1px solid var(--border-color); overflow: hidden; display: flex; flex-direction: column; }
         .modal-grid { display: grid; grid-template-columns: 1.3fr 1fr; flex: 1; overflow-y: auto; }
@@ -48,7 +48,6 @@
         button.action { background: var(--btn-light); color: var(--btn-text); width: 100%; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; border: none; transition: 0.2s; }
         button.action:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* Media UX */
         .upload-area { border: 2px dashed var(--border-color); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; transition: 0.3s; margin-bottom: 20px; }
         .preview-container { position: relative; width: 100%; display: none; margin-bottom: 15px; }
         .preview-box { width: 100%; height: 220px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-color); }
@@ -75,14 +74,21 @@
 
     <div class="sidebar">
         <div style="padding: 0 25px 40px; font-weight: 900; color: var(--btn-light); font-size: 20px;">LUMINA OS</div>
+        
         <div class="nav-item active" onclick="switchView('calendar', this)">🗓 Публикации</div>
+        <div class="nav-item" onclick="switchView('analytics', this)">📊 Аналитика</div>
+        <div class="nav-item" onclick="switchView('ideas', this)">💡 Генератор идей</div>
+        
+        <div class="divider"></div>
         <div class="nav-item" onclick="switchView('list', this)">📋 Очередь</div>
+
         <div style="margin-top: auto; padding: 25px;">
             <button onclick="logout()" style="background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px; width: 100%; border-radius: 12px; cursor: pointer;">Выход</button>
         </div>
     </div>
 
     <div class="main-content" id="app-body" style="display: none;">
+        
         <div id="v-calendar" class="view-section active">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px;">
                 <div style="display: flex; align-items: center; gap: 20px;">
@@ -100,6 +106,16 @@
         <div id="v-list" class="view-section">
             <h1 style="font-size: 32px; margin-bottom: 30px;">📋 Очередь</h1>
             <div id="listViewContainer"></div>
+        </div>
+
+        <div id="v-analytics" class="view-section">
+            <h1 style="font-size: 32px; margin-bottom: 30px;">📊 Аналитика</h1>
+            <div style="padding: 100px; text-align: center; color: var(--text-muted);">Здесь будет статистика охватов по соцсетям.</div>
+        </div>
+
+        <div id="v-ideas" class="view-section">
+            <h1 style="font-size: 32px; margin-bottom: 30px;">💡 Генератор идей</h1>
+            <div style="padding: 100px; text-align: center; color: var(--text-muted);">ИИ-помощник для создания сценариев Reels и TikTok.</div>
         </div>
     </div>
 
@@ -157,18 +173,13 @@
             setTimeout(() => t.remove(), 4000);
         }
 
-        // --- AUTH UX FIX ---
         async function handleAuth() {
             const email = document.getElementById('email').value, password = document.getElementById('pass').value;
             const btn = document.getElementById('authBtn');
             if(!email || !password) return showToast("Заполни поля!", "error");
-            
             btn.disabled = true; btn.innerText = "Проверка...";
-
             const { data, error } = await db.auth.signInWithPassword({ email, password });
-            
             if (error) {
-                // Если не вошел — пробуем регистрацию
                 const { error: signUpError } = await db.auth.signUp({ email, password });
                 if (signUpError) {
                     showToast(signUpError.message, "error");
@@ -180,13 +191,9 @@
             }
         }
 
-        // --- AUTO SESSION ---
         window.onload = async () => {
             const { data: { session } } = await db.auth.getSession();
-            if (session) {
-                user = session.user;
-                initApp();
-            }
+            if (session) { user = session.user; initApp(); }
         };
 
         db.auth.onAuthStateChange((event, session) => {
@@ -215,12 +222,10 @@
             const year = currentDate.getFullYear(), month = currentDate.getMonth();
             const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
             document.getElementById('monthTitle').innerText = `${monthNames[month]} ${year}`;
-
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDay = new Date(year, month, 1).getDay();
             const startOffset = firstDay === 0 ? 6 : firstDay - 1; 
             for (let i = 0; i < startOffset; i++) grid.innerHTML += '<div class="cal-day" style="border:none; background:none;"></div>';
-            
             const now = new Date();
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -260,40 +265,27 @@
 
         async function savePost() {
             const btn = document.getElementById('saveBtn');
-            // --- PROTECT FROM DOUBLE CLICK ---
             if (btn.disabled) return;
-
-            const status = document.getElementById('uploadStatus');
             const text = document.getElementById('mainText').value, date = document.getElementById('postDate').value;
             const plats = Array.from(document.querySelectorAll('.plat-btn.active')).map(b => b.innerText);
-            
             if (!date || plats.length === 0) return showToast("Заполни дату и сети!", "error");
-            
-            btn.disabled = true; 
-            btn.innerText = "Синхронизация...";
-
+            btn.disabled = true; btn.innerText = "Синхронизация...";
             try {
                 let media_url = currentEditingId ? posts.find(p => p.id === currentEditingId).media_url : null;
-
                 if (selectedFile) {
                     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${selectedFile.name.split('.').pop()}`;
                     const { data, error } = await db.storage.from('media').upload(`${user.id}/${fileName}`, selectedFile);
                     if (error) throw error;
                     media_url = db.storage.from('media').getPublicUrl(`${user.id}/${fileName}`).data.publicUrl;
-                } else if (mediaToRemove) {
-                    media_url = null;
-                }
-
+                } else if (mediaToRemove) { media_url = null; }
                 const postData = { user_id: user.id, text, post_date: date, platforms: plats, media_url, status: 'pending' };
                 const { error } = currentEditingId ? await db.from('posts').update(postData).eq('id', currentEditingId) : await db.from('posts').insert([postData]);
                 if (error) throw error;
-                
                 showToast("Успешно!"); closeModal(); loadData();
             } catch (err) { showToast(err.message, "error"); }
             finally { btn.disabled = false; btn.innerText = "Запланировать"; }
         }
 
-        // --- RESET MODAL STATE FIX ---
         function openModal(dateStr = '') {
             currentEditingId = null; selectedFile = null; mediaToRemove = null;
             document.getElementById('modalTitle').innerText = "Новая публикация";
@@ -302,7 +294,6 @@
             document.getElementById('previewContainer').style.display = 'none';
             document.getElementById('uploadArea').style.display = 'block';
             document.getElementById('deleteBtn').style.display = 'none';
-            document.getElementById('fileInput').value = '';
             document.querySelectorAll('.plat-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('postModal').style.display = 'flex';
         }
@@ -310,9 +301,7 @@
         function editPost(id) {
             const post = posts.find(p => String(p.id) === String(id));
             if (!post) return;
-            // Reset temp states before loading
-            selectedFile = null; mediaToRemove = null;
-            currentEditingId = id;
+            selectedFile = null; mediaToRemove = null; currentEditingId = id;
             document.getElementById('modalTitle').innerText = "Детали";
             document.getElementById('mainText').value = post.text || "";
             document.getElementById('postDate').value = post.post_date.slice(0, 16);
@@ -330,16 +319,19 @@
         }
 
         function closeModal() { document.getElementById('postModal').style.display = 'none'; }
+        
         function switchView(v, el) { 
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); el.classList.add('active');
-            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); document.getElementById('v-'+v).classList.add('active');
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active')); 
+            document.getElementById('v-'+v).classList.add('active');
         }
-        function togglePlat(el) { el.classList.toggle('active'); }
+
         async function deletePost() {
             if (!confirm("Удалить?")) return;
             await db.from('posts').delete().eq('id', currentEditingId);
             showToast("Удалено"); closeModal(); loadData();
         }
+
         function renderListView() {
             const c = document.getElementById('listViewContainer');
             c.innerHTML = posts.length ? posts.map(p => `
