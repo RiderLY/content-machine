@@ -7,126 +7,244 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
-            --bg-main: #0b0b10; --bg-panel: #16161e; --bg-input: #20202b; 
+            --bg-main: #0b0b10; --bg-sidebar: #13131a; --bg-panel: #16161e; --bg-input: #20202b; 
             --text-main: #e2e8f0; --text-muted: #64748b; 
             --accent-glow: #c084fc; --btn-light: #d8b4fe; --btn-text: #2e1065; 
+            --border-color: #2a2a3f;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
-        body { background: var(--bg-main); color: var(--text-main); padding: 40px; min-height: 100vh; }
-        .flex-center { height: 80vh; display: flex; justify-content: center; align-items: center; }
-        .auth-box { background: var(--bg-panel); padding: 30px; border-radius: 16px; width: 340px; border: 1px solid #2a2a3f; }
-        .container { display: none; max-width: 1100px; margin: 0 auto; grid-template-columns: 1.2fr 1fr; gap: 30px; }
-        .panel { background: var(--bg-panel); padding: 25px; border-radius: 16px; border: 1px solid #2a2a3f; }
-        label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 8px; margin-top: 15px; text-transform: uppercase; }
-        textarea, input { width: 100%; padding: 15px; border-radius: 10px; border: 1px solid #2a2a3f; background: var(--bg-input); color: white; outline: none; transition: 0.2s; font-size: 14px; }
-        textarea:focus, input:focus { border-color: var(--accent-glow); }
-        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        button.primary { background: var(--btn-light); color: var(--btn-text); margin-top: 25px; }
+        body { background: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* --- БОКОВОЕ МЕНЮ --- */
+        .sidebar { width: 250px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 20px 0; }
+        .logo { font-size: 20px; font-weight: bold; color: var(--btn-light); padding: 0 20px 30px; letter-spacing: 1px; }
+        .nav-item { padding: 15px 20px; color: var(--text-muted); cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; font-weight: 500; font-size: 14px; }
+        .nav-item:hover { color: var(--text-main); background: rgba(255,255,255,0.03); }
+        .nav-item.active { color: var(--btn-light); border-right: 3px solid var(--accent-glow); background: rgba(192, 132, 252, 0.05); }
+
+        /* --- ГЛАВНЫЙ ЭКРАН --- */
+        .main-content { flex: 1; padding: 30px 40px; overflow-y: auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        
+        button { border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s; padding: 10px 16px; font-size: 13px; }
+        button.primary { background: var(--btn-light); color: var(--btn-text); box-shadow: 0 4px 15px rgba(192, 132, 252, 0.2); }
         button.primary:hover { transform: translateY(-2px); filter: brightness(1.1); }
-        button.secondary { background: #2a2a3f; color: white; margin-top: 10px; font-size: 12px; }
-        .platforms { display: flex; gap: 8px; margin-top: 5px; }
-        .plat-btn { flex: 1; padding: 10px; background: var(--bg-input); border: 1px solid #2a2a3f; border-radius: 8px; color: var(--text-muted); cursor: pointer; text-align: center; font-size: 11px; font-weight: bold; }
-        .plat-btn.active { background: rgba(192, 132, 252, 0.2); border-color: var(--accent-glow); color: var(--btn-light); }
-        .queue-item { background: var(--bg-input); padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--accent-glow); }
-        .q-date { font-size: 11px; color: var(--accent-glow); font-weight: bold; margin-bottom: 5px; }
-        .q-text { font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
-        .q-plats { margin-top: 8px; display: flex; gap: 5px; }
-        .badge { font-size: 9px; padding: 2px 6px; background: #2a2a3f; border-radius: 4px; color: #aaa; }
+        button.secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-color); }
+        button.secondary:hover { border-color: #444; }
+
+        /* --- КАЛЕНДАРЬ --- */
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+        .cal-header { text-align: center; color: var(--text-muted); font-size: 12px; margin-bottom: 10px; font-weight: bold; }
+        .cal-day { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 12px; min-height: 120px; padding: 10px; position: relative; transition: 0.2s; }
+        .cal-day:hover { border-color: #444; }
+        .day-num { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+        .add-btn { position: absolute; top: 10px; right: 10px; background: transparent; color: var(--text-muted); border: none; font-size: 18px; cursor: pointer; display: none; padding: 0; line-height: 1;}
+        .cal-day:hover .add-btn { display: block; color: var(--accent-glow); }
+        .add-btn:hover { transform: scale(1.2); }
+
+        /* --- МОДАЛЬНОЕ ОКНО СОЗДАНИЯ ПОСТА --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: var(--bg-sidebar); width: 800px; border-radius: 16px; border: 1px solid var(--border-color); display: flex; flex-direction: column; max-height: 90vh; overflow: hidden;}
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-body { padding: 25px; overflow-y: auto; display: flex; gap: 20px;}
+        .modal-col-main { flex: 2; }
+        .modal-col-side { flex: 1; background: var(--bg-panel); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); }
+        
+        .toggle-group { display: flex; background: var(--bg-input); border-radius: 8px; padding: 4px; margin-bottom: 20px; }
+        .toggle-btn { flex: 1; text-align: center; padding: 8px; border-radius: 6px; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: bold; transition: 0.2s; }
+        .toggle-btn.active { background: var(--bg-panel); color: var(--text-main); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        .platforms { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .plat-btn { padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 8px; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;}
+        .plat-btn.active { background: rgba(192, 132, 252, 0.15); border-color: var(--accent-glow); color: var(--btn-light); }
+
+        .media-drop { border: 2px dashed var(--border-color); border-radius: 12px; padding: 40px 20px; text-align: center; color: var(--text-muted); cursor: pointer; transition: 0.2s; margin-bottom: 20px; background: var(--bg-panel); }
+        .media-drop:hover { border-color: var(--accent-glow); color: var(--btn-light); background: rgba(192, 132, 252, 0.02); }
+
+        label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        textarea, input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-input); color: white; outline: none; font-size: 13px; margin-bottom: 15px; }
+        textarea:focus, input:focus { border-color: var(--accent-glow); }
+
+        /* Авторизация */
+        #auth-screen { position: fixed; top:0; left:0; width: 100%; height: 100%; background: var(--bg-main); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+        .auth-box { background: var(--bg-panel); padding: 30px; border-radius: 16px; width: 340px; border: 1px solid var(--border-color); text-align: center;}
     </style>
 </head>
 <body>
-    <div id="auth-screen" class="flex-center">
+
+    <div id="auth-screen">
         <div class="auth-box">
-            <h2 style="text-align:center; color: var(--btn-light); margin-bottom:20px;">Content Machine</h2>
+            <h2 style="color: var(--btn-light); margin-bottom: 20px;">Lumina Content</h2>
             <input id="email" type="email" placeholder="Email">
-            <input id="pass" type="password" placeholder="Пароль" style="margin-top:10px">
-            <button class="primary" onclick="handleAuth()">Войти</button>
+            <input id="pass" type="password" placeholder="Пароль">
+            <button class="primary" style="width: 100%; margin-top: 10px;" onclick="handleAuth()">Войти</button>
         </div>
     </div>
 
-    <div id="main-app" class="container">
-        <div class="panel">
-            <h2>Создать пост</h2>
-            <label>Текст поста</label>
-            <textarea id="postText" rows="10" placeholder="О чем сегодня расскажем?"></textarea>
-            <label>Выберите соцсети</label>
-            <div class="platforms">
-                <div class="plat-btn active" data-name="TG">Telegram</div>
-                <div class="plat-btn" data-name="YT">YouTube</div>
-                <div class="plat-btn" data-name="INST">Instagram</div>
-                <div class="plat-btn" data-name="TT">TikTok</div>
+    <div class="sidebar">
+        <div class="logo">Content Machine</div>
+        <div class="nav-item active" onclick="switchTab('pubs')">🗓 Публикации</div>
+        <div class="nav-item" onclick="switchTab('stat')">📊 Аналитика</div>
+        <div class="nav-item" onclick="switchTab('ideas')">💡 Генератор идей</div>
+    </div>
+
+    <div class="main-content" id="app-content" style="display: none;">
+        
+        <div class="header">
+            <h1>Календарь публикаций</h1>
+            <div>
+                <button class="secondary" onclick="logout()" style="margin-right: 10px;">Выход</button>
+                <button class="primary" onclick="openModal()">+ Создать пост</button>
             </div>
-            <label>Дата и время</label>
-            <input type="datetime-local" id="postDate">
-            <button class="primary" onclick="schedulePost()">Запланировать</button>
-            <button class="secondary" onclick="logout()">Выход</button>
         </div>
-        <div class="panel">
-            <h2>Очередь постов</h2>
-            <div id="queueList"></div>
+
+        <div class="calendar-grid">
+            <div class="cal-header">ПН</div><div class="cal-header">ВТ</div><div class="cal-header">СР</div><div class="cal-header">ЧТ</div><div class="cal-header">ПТ</div><div class="cal-header">СБ</div><div class="cal-header">ВС</div>
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="postModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 style="font-size: 16px;">Новая публикация</h3>
+                <button style="background: transparent; color: var(--text-muted); font-size: 20px; padding: 0;" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <div class="modal-col-main">
+                    
+                    <div class="toggle-group">
+                        <div class="toggle-btn active" id="typePhoto" onclick="setContentType('photo')">🖼️ Фото / Посты</div>
+                        <div class="toggle-btn" id="typeVideo" onclick="setContentType('video')">📱 Короткие видео</div>
+                    </div>
+
+                    <label>Куда публикуем?</label>
+                    <div class="platforms" id="platContainerPhoto">
+                        <div class="plat-btn" onclick="this.classList.toggle('active')">Instagram (Фото)</div>
+                        <div class="plat-btn" onclick="this.classList.toggle('active')">Pinterest</div>
+                        <div class="plat-btn" onclick="this.classList.toggle('active')">Telegram</div>
+                    </div>
+                    <div class="platforms" id="platContainerVideo" style="display: none;">
+                        <div class="plat-btn" onclick="this.classList.toggle('active')">TikTok</div>
+                        <div class="plat-btn" onclick="this.classList.toggle('active')">YouTube Shorts</div>
+                        <div class="plat-btn" onclick="this.classList.toggle('active')">Instagram Reels</div>
+                    </div>
+
+                    <div class="toggle-group" style="margin-top: 10px;">
+                        <div class="toggle-btn active">⚡ Быстрое (Один текст)</div>
+                        <div class="toggle-btn">🛠️ Детальное (Под каждую сеть)</div>
+                    </div>
+
+                    <div class="media-drop">
+                        <div style="font-size: 24px; margin-bottom: 10px;">📥</div>
+                        Перетащите файлы сюда или <b>нажмите для выбора</b>
+                    </div>
+
+                    <label>Основной текст</label>
+                    <textarea rows="5" placeholder="Начните писать... (Поддерживает хештеги)"></textarea>
+
+                </div>
+
+                <div class="modal-col-side">
+                    <label>Дата и время</label>
+                    <input type="datetime-local" id="modalDate">
+
+                    <label>Дополнительно</label>
+                    <div style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                        <input type="checkbox" style="width: auto; margin:0;"> Закрепить пост (TG)
+                    </div>
+                    
+                    <div style="height: 150px; border: 1px dashed #444; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #444; font-size: 12px; margin-top: 20px;">
+                        Превью поста
+                    </div>
+
+                    <button class="primary" style="width: 100%; margin-top: 30px;" onclick="closeModal()">Запланировать</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Supabase инициализация (оставили пока для авторизации)
         const SUPABASE_URL = "https://ltrglnjbsyoelkagqbbh.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cmdsbmpic3lvZWxrYWdxYmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgyNDksImV4cCI6MjA5MDc1NDI0OX0.VhZiD9OVDfv3nlfYysBNXPsax4RkevErwWImMlqW9BM";
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        let currentUser = null;
 
-        document.querySelectorAll('.plat-btn').forEach(btn => {
-            btn.onclick = () => btn.classList.toggle('active');
-        });
-
+        // Авторизация
         async function handleAuth() {
             const email = document.getElementById('email').value;
-            const password = document.getElementById('pass').value;
-            const { data, error } = await db.auth.signInWithPassword({ email, password });
-            if (error) alert("Ошибка: " + error.message);
+            const pass = document.getElementById('pass').value;
+            const { error } = await db.auth.signInWithPassword({ email, password: pass });
+            if (error) alert(error.message);
         }
 
         db.auth.onAuthStateChange((event, session) => {
             if (session) {
-                currentUser = session.user;
                 document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'grid';
-                loadPosts();
+                document.getElementById('app-content').style.display = 'block';
+                generateCalendar();
             } else {
                 document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('main-app').style.display = 'none';
+                document.getElementById('app-content').style.display = 'none';
             }
         });
 
         function logout() { db.auth.signOut(); }
 
-        async function loadPosts() {
-            const { data, error } = await db.from('posts').select('*').eq('user_id', currentUser.id).order('post_date', { ascending: true });
-            const list = document.getElementById('queueList');
-            list.innerHTML = '';
-            if (data && data.length > 0) {
-                data.forEach(p => {
-                    const item = document.createElement('div');
-                    item.className = 'queue-item';
-                    const date = new Date(p.post_date).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
-                    const platforms = p.platforms.map(pl => `<span class="badge">${pl}</span>`).join(' ');
-                    item.innerHTML = `<div class="q-date">${date}</div><div class="q-text">${p.text}</div><div class="q-plats">${platforms}</div>`;
-                    list.appendChild(item);
-                });
-            } else {
-                list.innerHTML = '<div style="color:#666; text-align:center; margin-top:20px;">Очередь пуста</div>';
+        // Генерация простого календаря на 35 дней
+        function generateCalendar() {
+            const grid = document.querySelector('.calendar-grid');
+            // Очищаем, оставляем только заголовки дней недели
+            grid.innerHTML = '<div class="cal-header">ПН</div><div class="cal-header">ВТ</div><div class="cal-header">СР</div><div class="cal-header">ЧТ</div><div class="cal-header">ПТ</div><div class="cal-header">СБ</div><div class="cal-header">ВС</div>';
+            
+            for(let i = 1; i <= 35; i++) {
+                let dayNum = i <= 31 ? i : ''; // Условно 31 день
+                let bgStyle = dayNum ? '' : 'background: transparent; border: none;';
+                
+                grid.innerHTML += `
+                    <div class="cal-day" style="${bgStyle}">
+                        ${dayNum ? `<div class="day-num">${dayNum} апр</div>
+                        <button class="add-btn" onclick="openModal('2026-04-${dayNum.toString().padStart(2, '0')}')">+</button>` : ''}
+                    </div>
+                `;
             }
         }
 
-        async function schedulePost() {
-            const text = document.getElementById('postText').value;
-            const date = document.getElementById('postDate').value;
-            const platforms = [];
-            document.querySelectorAll('.plat-btn.active').forEach(b => platforms.push(b.dataset.name));
-            
-            if (!text || !date || platforms.length === 0) { alert("Заполни всё!"); return; }
+        // Управление модальным окном
+        function openModal(dateStr = '') {
+            document.getElementById('postModal').style.display = 'flex';
+            if (dateStr) {
+                document.getElementById('modalDate').value = dateStr + 'T12:00';
+            }
+        }
 
-            const { error } = await db.from('posts').insert([{ user_id: currentUser.id, text, post_date: date, platforms, status: 'pending' }]);
-            if (!error) { document.getElementById('postText').value = ''; loadPosts(); }
-            else { alert("Ошибка сохранения!"); }
+        function closeModal() {
+            document.getElementById('postModal').style.display = 'none';
+        }
+
+        // Переключение типа контента
+        function setContentType(type) {
+            document.getElementById('typePhoto').classList.remove('active');
+            document.getElementById('typeVideo').classList.remove('active');
+            
+            document.getElementById('platContainerPhoto').style.display = 'none';
+            document.getElementById('platContainerVideo').style.display = 'none';
+
+            if (type === 'photo') {
+                document.getElementById('typePhoto').classList.add('active');
+                document.getElementById('platContainerPhoto').style.display = 'flex';
+            } else {
+                document.getElementById('typeVideo').classList.add('active');
+                document.getElementById('platContainerVideo').style.display = 'flex';
+            }
+        }
+
+        // Переключение вкладок слева (визуально)
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            // Пока здесь заглушка, так как работает только календарь
         }
     </script>
 </body>
