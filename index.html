@@ -3,31 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina OS v3.0</title>
+    <title>Lumina OS v3.1 | SaaS Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root { 
             --bg-main: #0b0b10; --bg-sidebar: #13131a; --bg-panel: #16161e; --bg-input: #20202b; 
             --text-main: #e2e8f0; --text-muted: #64748b; 
             --accent-glow: #c084fc; --btn-light: #d8b4fe; --btn-text: #2e1065; 
-            --border-color: #2a2a3f; --error: #ef4444; --success: #22c55e;
+            --border-color: #2a2a3f; --error: #ef4444; --success: #22c55e; --warning: #eab308;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
+        /* Notifications */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
         .toast { padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; color: white; font-size: 14px; font-weight: 600; animation: slideIn 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
         /* Sidebar */
         .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 25px 0; overflow-y: auto; }
-        .logo-area { padding: 0 25px 30px; font-weight: 900; color: var(--btn-light); font-size: 20px; letter-spacing: 1px; }
+        .logo-area { padding: 0 25px 30px; font-weight: 900; color: var(--btn-light); font-size: 20px; letter-spacing: 1px; text-transform: uppercase;}
         .nav-item { padding: 12px 25px; color: var(--text-muted); cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; }
         .nav-item:hover { color: var(--text-main); background: rgba(255,255,255,0.02); }
         .nav-item.active { color: var(--btn-light); background: rgba(192, 132, 252, 0.08); border-right: 3px solid var(--accent-glow); }
         .divider { margin: 15px 25px; border-top: 1px solid var(--border-color); }
         
-        /* Sidebar Channels UI */
+        /* Channels UI */
         .section-title { padding: 0 25px; font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 10px; margin-top: 10px;}
         .channel-item { padding: 10px 25px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-main); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
@@ -44,33 +45,40 @@
         .day-num.today { color: var(--accent-glow); }
         .post-chip { background: var(--bg-input); font-size: 11px; padding: 6px 10px; border-radius: 8px; border-left: 3px solid var(--accent-glow); margin-top: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* UI Elements */
-        .list-card { background: var(--bg-panel); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        /* UI Elements & List */
+        .list-card { background: var(--bg-panel); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;}
+        .list-card:hover { border-color: var(--accent-glow); transform: translateY(-2px); }
         input, textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; color: white; padding: 14px; margin-bottom: 15px; outline: none; }
-        button.action { background: var(--btn-light); color: var(--btn-text); width: 100%; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; border: none; }
+        button.action { background: var(--btn-light); color: var(--btn-text); width: 100%; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; border: none; transition: 0.2s; }
+        button.action:disabled { opacity: 0.5; cursor: not-allowed; }
         
+        /* Status Badges */
+        .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .status-pending { background: rgba(234, 179, 8, 0.15); color: var(--warning); border: 1px solid rgba(234, 179, 8, 0.3); }
+        .status-published { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.3); }
+
         /* Media */
-        .upload-area { border: 2px dashed var(--border-color); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; }
+        .upload-area { border: 2px dashed var(--border-color); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
+        .upload-area:hover { border-color: var(--accent-glow); background: rgba(192, 132, 252, 0.03); }
         .preview-container { position: relative; width: 100%; display: none; margin-bottom: 15px; }
-        .preview-box { width: 100%; height: 220px; border-radius: 12px; object-fit: cover; }
-        .remove-media { position: absolute; top: 10px; right: 10px; background: var(--error); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
+        .preview-box { width: 100%; height: 220px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-color); }
+        .remove-media { position: absolute; top: 10px; right: 10px; background: var(--error); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; }
 
         /* Modals */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); }
         .modal { background: var(--bg-sidebar); width: 900px; max-height: 90vh; border-radius: 24px; border: 1px solid var(--border-color); overflow: hidden; display: flex; flex-direction: column; }
         .modal-grid { display: grid; grid-template-columns: 1.3fr 1fr; flex: 1; overflow-y: auto; }
         
-        /* Connect Channels Modal (New) */
         .connect-modal { background: var(--bg-sidebar); width: 600px; border-radius: 24px; border: 1px solid var(--border-color); padding: 30px; }
         .channels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
         .channel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 16px; padding: 25px 15px; text-align: center; cursor: pointer; transition: 0.2s; }
         .channel-card:hover { border-color: var(--accent-glow); transform: translateY(-3px); background: rgba(192, 132, 252, 0.05); }
         .channel-icon { font-size: 32px; margin-bottom: 10px; }
         .channel-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-        .channel-desc { font-size: 11px; color: var(--text-muted); }
 
-        .plat-btn { padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; text-align: center; font-size: 12px; }
+        .plat-btn { padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; text-align: center; font-size: 12px; transition: 0.2s;}
         .plat-btn.active { border-color: var(--accent-glow); color: var(--btn-light); background: rgba(192, 132, 252, 0.1); }
+        
         .datetime-split { display: flex; gap: 10px; margin-bottom: 20px; }
         .datetime-split > div { flex: 1; }
         .datetime-split label { font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: block; }
@@ -93,7 +101,7 @@
     </div>
 
     <div class="sidebar">
-        <div class="logo-area">LUMINA OS</div>
+        <div class="logo-area">Lumina OS</div>
         <button class="action" style="margin: 0 20px 20px; width: auto; padding: 12px;" onclick="openModal()">+ Создать пост</button>
         
         <div class="nav-item active" onclick="switchView('calendar', this)">🗓 Календарь</div>
@@ -103,9 +111,7 @@
         
         <div class="divider"></div>
         <div class="section-title">Каналы</div>
-        
         <div id="connectedChannelsList"></div>
-        
         <div class="nav-item" style="color: var(--btn-light);" onclick="openConnectModal()">
             <span style="font-size: 18px; font-weight: bold;">+</span> Подключить канал
         </div>
@@ -119,7 +125,7 @@
         <div id="v-calendar" class="view-section active">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 35px;">
                 <div style="display: flex; align-items: center; gap: 20px;">
-                    <h1 id="monthTitle" style="font-size: 32px;">Апрель 2026</h1>
+                    <h1 id="monthTitle" style="font-size: 32px; font-weight:800;">Апрель 2026</h1>
                     <div style="display: flex; gap: 8px;">
                         <button onclick="changeMonth(-1)" style="padding: 8px 12px; background: var(--bg-input); border:none; border-radius: 8px; color: white; cursor:pointer;">❮</button>
                         <button onclick="changeMonth(1)" style="padding: 8px 12px; background: var(--bg-input); border:none; border-radius: 8px; color: white; cursor:pointer;">❯</button>
@@ -129,15 +135,19 @@
             <div class="calendar-grid" id="grid"></div>
         </div>
 
-        <div id="v-analytics" class="view-section"><h1 style="font-size: 32px; margin-bottom: 30px;">📊 Аналитика</h1><div style="background: var(--bg-panel); padding: 40px; border-radius: 20px; border: 1px solid var(--border-color); text-align: center; color: var(--text-muted);">Статистика будет доступна после первых публикаций.</div></div>
-        <div id="v-ideas" class="view-section"><h1 style="font-size: 32px; margin-bottom: 30px;">💡 ИИ Генератор идей</h1><textarea placeholder="Опиши тему для видео или поста..." rows="4"></textarea><button class="action" style="width: auto; padding: 12px 30px;">Сгенерировать сценарий</button></div>
-        <div id="v-list" class="view-section"><h1 style="font-size: 32px; margin-bottom: 30px;">📋 Очередь публикаций</h1><div id="listViewContainer"></div></div>
+        <div id="v-list" class="view-section">
+            <h1 style="font-size: 32px; font-weight:800; margin-bottom: 30px;">📋 Очередь</h1>
+            <div id="listViewContainer"></div>
+        </div>
+        
+        <div id="v-analytics" class="view-section"><h1 style="font-size: 32px; margin-bottom: 30px;">📊 Аналитика</h1></div>
+        <div id="v-ideas" class="view-section"><h1 style="font-size: 32px; margin-bottom: 30px;">💡 Генератор идей</h1></div>
     </div>
 
     <div class="modal-overlay" id="postModal">
         <div class="modal">
             <div style="padding: 25px 35px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between;">
-                <h2 id="modalTitle">Детали</h2>
+                <h2 id="modalTitle">Детали публикации</h2>
                 <span style="cursor:pointer; font-size: 30px;" onclick="closeModal('postModal')">&times;</span>
             </div>
             <div class="modal-grid">
@@ -147,16 +157,16 @@
                         <button class="remove-media" onclick="removeMedia()">&times;</button>
                     </div>
                     <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <div style="font-size: 30px; margin-bottom: 10px;">☁️</div>
                         📁 Нажми для загрузки медиа
                         <input type="file" id="fileInput" hidden onchange="handleFileSelect(this)">
                     </div>
-                    <textarea id="mainText" rows="6" placeholder="Текст..."></textarea>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="platList">
-                        <div class="plat-btn" onclick="togglePlat(this)">Instagram</div>
-                        <div class="plat-btn" onclick="togglePlat(this)">TikTok</div>
-                        <div class="plat-btn" onclick="togglePlat(this)">Telegram</div>
-                        <div class="plat-btn" onclick="togglePlat(this)">YouTube Shorts</div>
-                    </div>
+                    
+                    <textarea id="mainText" rows="6" placeholder="Текст поста..."></textarea>
+                    
+                    <label style="font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom:10px; display:block;">Опубликовать в:</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="dynamicPlatList">
+                        </div>
                 </div>
                 <div style="padding: 35px; background: var(--bg-panel);">
                     <div class="datetime-split">
@@ -164,7 +174,7 @@
                         <div><label>Время</label><input type="time" id="postTimeOnly"></div>
                     </div>
                     <button class="action" id="saveBtn" onclick="savePost()">Запланировать</button>
-                    <button id="deleteBtn" style="margin-top: 15px; width:100%; background:none; border:1px solid var(--error); color:var(--error); padding:12px; border-radius:12px; cursor:pointer; display:none;" onclick="deletePost()">Удалить пост</button>
+                    <button id="deleteBtn" style="margin-top: 15px; width:100%; background:none; border:1px solid var(--error); color:var(--error); padding:12px; border-radius:12px; cursor:pointer; font-weight:700; display:none;" onclick="deletePost()">Удалить пост</button>
                 </div>
             </div>
         </div>
@@ -173,37 +183,15 @@
     <div class="modal-overlay" id="connectModal">
         <div class="connect-modal">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="font-size: 20px;">Подключить новый канал</h2>
-                <span style="cursor:pointer; font-size: 28px; color: var(--text-muted);" onclick="closeModal('connectModal')">&times;</span>
+                <h2 style="font-size: 20px;">Подключить канал</h2>
+                <span style="cursor:pointer; font-size: 28px;" onclick="closeModal('connectModal')">&times;</span>
             </div>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Выберите платформу для интеграции. Прямая публикация будет работать через настроенный webhook (Make.com).</p>
-            
             <div class="channels-grid">
-                <div class="channel-card" onclick="simulateConnect('Instagram', '📱')">
-                    <div class="channel-icon">📸</div>
-                    <div class="channel-name">Instagram</div>
-                    <div class="channel-desc">Business / Creator</div>
-                </div>
-                <div class="channel-card" onclick="simulateConnect('TikTok', '🎵')">
-                    <div class="channel-icon">🎵</div>
-                    <div class="channel-name">TikTok</div>
-                    <div class="channel-desc">Creator Account</div>
-                </div>
-                <div class="channel-card" onclick="simulateConnect('Telegram', '✈️')">
-                    <div class="channel-icon">✈️</div>
-                    <div class="channel-name">Telegram</div>
-                    <div class="channel-desc">Channel / Group</div>
-                </div>
-                <div class="channel-card" onclick="simulateConnect('YouTube', '▶️')">
-                    <div class="channel-icon">▶️</div>
-                    <div class="channel-name">YouTube</div>
-                    <div class="channel-desc">Shorts & Video</div>
-                </div>
-                <div class="channel-card" onclick="simulateConnect('Pinterest', '📌')">
-                    <div class="channel-icon">📌</div>
-                    <div class="channel-name">Pinterest</div>
-                    <div class="channel-desc">Boards</div>
-                </div>
+                <div class="channel-card" onclick="simulateConnect('Instagram', '📸')"><div class="channel-icon">📸</div><div class="channel-name">Instagram</div></div>
+                <div class="channel-card" onclick="simulateConnect('TikTok', '🎵')"><div class="channel-icon">🎵</div><div class="channel-name">TikTok</div></div>
+                <div class="channel-card" onclick="simulateConnect('Telegram', '✈️')"><div class="channel-icon">✈️</div><div class="channel-name">Telegram</div></div>
+                <div class="channel-card" onclick="simulateConnect('YouTube', '▶️')"><div class="channel-icon">▶️</div><div class="channel-name">YouTube</div></div>
+                <div class="channel-card" onclick="simulateConnect('Pinterest', '📌')"><div class="channel-icon">📌</div><div class="channel-name">Pinterest</div></div>
             </div>
         </div>
     </div>
@@ -211,12 +199,12 @@
     <script>
         const SUPABASE_URL = "https://ltrglnjbsyoelkagqbbh.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cmdsbmpic3lvZWxrYWdxYmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgyNDksImV4cCI6MjA5MDc1NDI0OX0.VhZiD9OVDfv3nlfYysBNXPsax4RkevErwWImMlqW9BM";
+        const WEBHOOK_URL = "MOCK_WEBHOOK_URL_HERE"; // Сюда позже вставим ссылку из Make.com
+
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         
         let user = null, posts = [], currentEditingId = null, selectedFile = null, mediaToRemove = null;
         let currentDate = new Date();
-        
-        // Массив подключенных каналов (в будущем будем брать из БД)
         let connectedChannels = []; 
 
         function showToast(msg, type = 'success') {
@@ -229,9 +217,11 @@
             setTimeout(() => t.remove(), 3000);
         }
 
+        // --- AUTH ---
         async function handleAuth() {
             const email = document.getElementById('email').value, password = document.getElementById('pass').value;
             const btn = document.getElementById('authBtn');
+            if(!email || !password) return showToast("Заполни поля!", "error");
             btn.disabled = true; btn.innerText = "Вход...";
             const { data, error } = await db.auth.signInWithPassword({ email, password });
             if (error) {
@@ -244,13 +234,8 @@
         window.onload = async () => {
             const { data: { session } } = await db.auth.getSession();
             if (session) { user = session.user; initApp(); }
-            
-            // Восстанавливаем демо-каналы из локального хранилища браузера
             const savedChannels = localStorage.getItem('lumina_channels');
-            if (savedChannels) {
-                connectedChannels = JSON.parse(savedChannels);
-                renderChannels();
-            }
+            if (savedChannels) { connectedChannels = JSON.parse(savedChannels); renderChannels(); }
         };
 
         db.auth.onAuthStateChange((event, session) => {
@@ -258,19 +243,49 @@
             else { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-body').style.display = 'none'; }
         });
 
-        function initApp() {
-            document.getElementById('auth-screen').style.display = 'none'; 
-            document.getElementById('app-body').style.display = 'block'; 
-            loadData();
-        }
-
+        function initApp() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-body').style.display = 'block'; loadData(); }
         function logout() { db.auth.signOut(); }
 
+        // --- CORE DATA ---
         async function loadData() {
             const { data, error } = await db.from('posts').select('*').eq('user_id', user.id).order('post_date', { ascending: true });
             if (!error) { posts = data; renderCalendar(); renderListView(); }
         }
 
+        // --- CHANNELS & UI ---
+        function openConnectModal() { document.getElementById('connectModal').style.display = 'flex'; }
+        
+        function simulateConnect(name, icon) {
+            if (!connectedChannels.find(c => c.name === name)) {
+                connectedChannels.push({ name, icon });
+                localStorage.setItem('lumina_channels', JSON.stringify(connectedChannels));
+                renderChannels();
+                showToast(`Канал ${name} привязан!`, "success");
+            } else { showToast(`${name} уже подключен.`, "error"); }
+            closeModal('connectModal');
+        }
+
+        function renderChannels() {
+            const container = document.getElementById('connectedChannelsList');
+            container.innerHTML = connectedChannels.map(c => `
+                <div class="channel-item"><span>${c.icon}</span> ${c.name} <div class="status-dot" style="margin-left: auto;"></div></div>
+            `).join('');
+        }
+
+        function buildDynamicPlatList(activePlatforms = []) {
+            const container = document.getElementById('dynamicPlatList');
+            if(connectedChannels.length === 0) {
+                container.innerHTML = '<p style="grid-column: span 2; font-size: 11px; color: var(--error);">Сначала подключите каналы в левом меню!</p>';
+                return;
+            }
+            container.innerHTML = connectedChannels.map(c => {
+                const isActive = activePlatforms.includes(c.name) ? 'active' : '';
+                return `<div class="plat-btn ${isActive}" onclick="togglePlat(this)" data-name="${c.name}">${c.icon} ${c.name}</div>`;
+            }).join('');
+        }
+        function togglePlat(el) { el.classList.toggle('active'); }
+
+        // --- CALENDAR & LIST ---
         function switchView(v, el) {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             if(el) el.classList.add('active');
@@ -286,10 +301,13 @@
             const year = currentDate.getFullYear(), month = currentDate.getMonth();
             const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
             document.getElementById('monthTitle').innerText = `${monthNames[month]} ${year}`;
+            
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const firstDay = new Date(year, month, 1).getDay();
             const startOffset = firstDay === 0 ? 6 : firstDay - 1;
+            
             for (let i = 0; i < startOffset; i++) grid.innerHTML += '<div class="cal-day" style="border:none; background:none;"></div>';
+            
             const now = new Date();
             for (let d = 1; d <= daysInMonth; d++) {
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
@@ -302,35 +320,28 @@
             }
         }
 
-        // --- NEW CHANNELS LOGIC ---
-        function openConnectModal() {
-            document.getElementById('connectModal').style.display = 'flex';
+        function renderListView() {
+            const c = document.getElementById('listViewContainer');
+            c.innerHTML = posts.length ? posts.map(p => {
+                let statusClass = p.status === 'published' ? 'status-published' : 'status-pending';
+                let statusText = p.status === 'published' ? 'Опубликовано' : 'Ожидает';
+                
+                return `
+                <div class="list-card" onclick="editPost('${p.id}')">
+                    <div style="flex:1;">
+                        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <span style="color:var(--text-muted); font-size:12px; font-weight:bold;">${new Date(p.post_date).toLocaleString([], {year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <p style="margin:0 0 5px 0; font-size: 15px;">${p.text || '📄 Медиа контент'}</p>
+                        <p style="font-size:11px; color:var(--text-muted);">${p.platforms?.join(', ')}</p>
+                    </div>
+                    ${p.media_url ? `<img src="${p.media_url}" style="width:60px; height:60px; border-radius:10px; object-fit:cover;">` : ''}
+                </div>`;
+            }).join('') : '<p style="text-align:center; color:var(--text-muted);">Очередь пуста</p>';
         }
 
-        function simulateConnect(name, icon) {
-            // Проверяем, не подключен ли уже
-            if (!connectedChannels.find(c => c.name === name)) {
-                connectedChannels.push({ name, icon });
-                localStorage.setItem('lumina_channels', JSON.stringify(connectedChannels));
-                renderChannels();
-                showToast(`Канал ${name} успешно привязан!`, "success");
-            } else {
-                showToast(`Канал ${name} уже подключен.`, "error");
-            }
-            closeModal('connectModal');
-        }
-
-        function renderChannels() {
-            const container = document.getElementById('connectedChannelsList');
-            container.innerHTML = connectedChannels.map(c => `
-                <div class="channel-item">
-                    <span>${c.icon}</span> ${c.name}
-                    <div class="status-dot" style="margin-left: auto;" title="Подключено"></div>
-                </div>
-            `).join('');
-        }
-
-        // --- OLD LOGIC ---
+        // --- REAL STORAGE FIX ---
         function handleFileSelect(input) {
             if (input.files[0]) {
                 selectedFile = input.files[0];
@@ -351,7 +362,26 @@
             document.getElementById('fileInput').value = '';
         }
 
-        function togglePlat(el) { el.classList.toggle('active'); }
+        async function deleteFileFromStorage(url) {
+            try {
+                // Ищем путь после названия бакета 'media/'
+                const path = url.split('/storage/v1/object/public/media/')[1];
+                if (path) await db.storage.from('media').remove([path]);
+            } catch (e) { console.error("Ошибка удаления из storage:", e); }
+        }
+
+        // --- SAVING & WEBHOOK ---
+        async function triggerWebhook(postData) {
+            if(WEBHOOK_URL === "MOCK_WEBHOOK_URL_HERE") return; // Заглушка, пока нет реального
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(postData)
+                });
+                console.log("Webhook fired!");
+            } catch (e) { console.error("Webhook failed", e); }
+        }
 
         async function savePost() {
             const btn = document.getElementById('saveBtn');
@@ -360,10 +390,10 @@
             const text = document.getElementById('mainText').value;
             const dDate = document.getElementById('postDateOnly').value;
             const dTime = document.getElementById('postTimeOnly').value;
-            const plats = Array.from(document.querySelectorAll('.plat-btn.active')).map(b => b.innerText);
+            const plats = Array.from(document.querySelectorAll('.plat-btn.active')).map(b => b.dataset.name);
             
             if (!dDate || !dTime) return showToast("Заполни дату и время!", "error");
-            if (plats.length === 0) return showToast("Выбери хотя бы одну площадку!", "error");
+            if (plats.length === 0) return showToast("Выбери хотя бы один канал!", "error");
             
             const fullDateTime = `${dDate}T${dTime}`;
             btn.disabled = true; btn.innerText = "Синхронизация...";
@@ -371,18 +401,37 @@
             try {
                 let media_url = currentEditingId ? posts.find(p => p.id === currentEditingId).media_url : null;
                 
+                // 1. Загрузка нового файла
                 if (selectedFile) {
-                    const fileName = `${Date.now()}-${selectedFile.name}`;
+                    // Пуленепробиваемое имя: Timestamp + Hash + Extension
+                    const ext = selectedFile.name.split('.').pop();
+                    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+                    
                     const { data, error } = await db.storage.from('media').upload(`${user.id}/${fileName}`, selectedFile);
                     if (error) throw error;
+                    
+                    if (media_url) await deleteFileFromStorage(media_url); // Удаляем старое при замене
                     media_url = db.storage.from('media').getPublicUrl(`${user.id}/${fileName}`).data.publicUrl;
-                } else if (mediaToRemove) {
+                } 
+                // 2. Истинное удаление старого файла, если пользователь нажал крестик
+                else if (mediaToRemove) {
+                    await deleteFileFromStorage(mediaToRemove);
                     media_url = null;
                 }
 
-                const postData = { user_id: user.id, text, post_date: fullDateTime, platforms: plats, media_url };
-                const { error } = currentEditingId ? await db.from('posts').update(postData).eq('id', currentEditingId) : await db.from('posts').insert([postData]);
+                const postData = { user_id: user.id, text, post_date: fullDateTime, platforms: plats, media_url, status: 'pending' };
+                
+                const { error, data } = currentEditingId 
+                    ? await db.from('posts').update(postData).eq('id', currentEditingId).select()
+                    : await db.from('posts').insert([postData]).select();
+                
                 if (error) throw error;
+
+                // 3. Отправка в Make.com (будущий автопостинг)
+                if(!currentEditingId) {
+                    triggerWebhook(data[0]); 
+                }
+
                 showToast("Успешно!"); closeModal('postModal'); loadData();
             } catch (err) { showToast(err.message, "error"); }
             finally { btn.disabled = false; btn.innerText = "Запланировать"; }
@@ -399,7 +448,8 @@
             document.getElementById('uploadArea').style.display = 'block';
             document.getElementById('deleteBtn').style.display = 'none';
             document.getElementById('fileInput').value = '';
-            document.querySelectorAll('.plat-btn').forEach(b => b.classList.remove('active'));
+            
+            buildDynamicPlatList([]); // Генерируем кнопки соцсетей
             document.getElementById('postModal').style.display = 'flex';
         }
 
@@ -426,30 +476,21 @@
                 document.getElementById('previewContainer').style.display = 'none';
                 document.getElementById('uploadArea').style.display = 'block';
             }
-            document.querySelectorAll('.plat-btn').forEach(b => b.classList.toggle('active', post.platforms?.includes(b.innerText)));
+            
+            buildDynamicPlatList(post.platforms || []); // Генерируем кнопки соцсетей с активными
             document.getElementById('postModal').style.display = 'flex';
         }
 
         function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
         
         async function deletePost() { 
-            if (confirm("Удалить?")) { 
+            if (confirm("Точно удалить?")) {
+                const post = posts.find(p => p.id === currentEditingId);
+                if(post && post.media_url) await deleteFileFromStorage(post.media_url); // Удаляем физически
+                
                 await db.from('posts').delete().eq('id', currentEditingId); 
                 showToast("Удалено"); closeModal('postModal'); loadData(); 
             } 
-        }
-        
-        function renderListView() {
-            const c = document.getElementById('listViewContainer');
-            c.innerHTML = posts.length ? posts.map(p => `
-                <div class="list-card" onclick="editPost('${p.id}')">
-                    <div>
-                        <p style="color:var(--accent-glow); font-size:12px; font-weight:bold;">${new Date(p.post_date).toLocaleString([], {year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute:'2-digit'})}</p>
-                        <p style="margin:5px 0;">${p.text || '📄 Медиа'}</p>
-                        <p style="font-size:11px; color:var(--text-muted);">${p.platforms?.join(', ')}</p>
-                    </div>
-                    ${p.media_url ? `<img src="${p.media_url}" style="width:50px; height:50px; border-radius:8px; object-fit:cover;">` : ''}
-                </div>`).join('') : '<p style="text-align:center; color:var(--text-muted);">Пусто</p>';
         }
     </script>
 </body>
