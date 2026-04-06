@@ -370,14 +370,33 @@
             document.getElementById('fileInput').value = '';
         }
 
-        // --- DIRECT WEBHOOK SEND (NO POSTS TABLE REQUIRED) ---
-        async function triggerWebhook(postObj) {
-            try {
-                const res = await fetch(WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(postObj)
-                });
+ 
+               // --- ЗАПИСЬ В ТАБЛИЦУ SUPABASE (ОБЛАКО) ---
+async function triggerWebhook(postObj) {
+             try {
+                // Отправляем данные в таблицу posts вместо вебхука
+                const { data, error } = await supabase
+                  .from('posts')
+                  .insert([
+                    { 
+                      text: postObj.title,       // Берем текст из объекта поста
+                      media_url: postObj.media_url, // Берем ссылку на видео
+                      status: 'pending',         // Статус "в ожидании" для Make
+                      platforms: 'youtube'       // Указываем, что это для ютуба
+                    }
+                  ]);
+
+                if (error) throw error; // Если база выдаст ошибку, прыгаем в catch
+
+                // Если мы дошли сюда, значит запись в базу прошла успешно!
+                showToast("Данные сохранены в Supabase!");
+
+            } catch (e) { 
+                console.error("Ошибка при записи в базу:", e);
+                showToast("Не удалось сохранить в облако", "error");
+            }
+        }
+
                 
                 if (res.ok) {
                     showToast("Успешно отправлено в автопостинг!");
@@ -462,3 +481,4 @@
     </script>
 </body>
 </html>
+
