@@ -15,12 +15,12 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background: var(--bg-main); color: var(--text-main); display: flex; height: 100vh; overflow: hidden; }
 
-        /* Notifications */
+        /* Уведомления */
         #toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
         .toast { padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; color: white; font-size: 14px; font-weight: 600; animation: slideIn 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
 
-        /* Sidebar */
+        /* Боковая панель */
         .sidebar { width: 260px; background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; padding: 25px 0; overflow-y: auto; }
         .logo-area { padding: 0 25px 30px; font-weight: 900; color: var(--btn-light); font-size: 20px; letter-spacing: 1px; text-transform: uppercase;}
         .nav-item { padding: 12px 25px; color: var(--text-muted); cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 14px; }
@@ -28,7 +28,6 @@
         .nav-item.active { color: var(--btn-light); background: rgba(192, 132, 252, 0.08); border-right: 3px solid var(--accent-glow); }
         .divider { margin: 15px 25px; border-top: 1px solid var(--border-color); }
         
-        /* Channels UI */
         .section-title { padding: 0 25px; font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 10px; margin-top: 10px;}
         .channel-item { padding: 10px 25px; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-main); }
         .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 8px var(--success); }
@@ -37,7 +36,7 @@
         .view-section { display: none; }
         .view-section.active { display: block; }
 
-        /* Calendar */
+        /* Календарь */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; margin-top: 20px; }
         .cal-header { text-align: center; color: var(--text-muted); font-size: 11px; font-weight: 800; text-transform: uppercase; margin-bottom: 10px; }
         .cal-day { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 16px; min-height: 140px; padding: 15px; position: relative; }
@@ -45,47 +44,36 @@
         .day-num.today { color: var(--accent-glow); }
         .post-chip { background: var(--bg-input); font-size: 11px; padding: 6px 10px; border-radius: 8px; border-left: 3px solid var(--accent-glow); margin-top: 5px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* UI Elements & List */
+        /* Элементы интерфейса */
         .list-card { background: var(--bg-panel); padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;}
         .list-card:hover { border-color: var(--accent-glow); transform: translateY(-2px); }
         input, textarea { width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; color: white; padding: 14px; margin-bottom: 15px; outline: none; }
         button.action { background: var(--btn-light); color: var(--btn-text); width: 100%; padding: 16px; border-radius: 14px; font-weight: 800; cursor: pointer; border: none; transition: 0.2s; }
         button.action:disabled { opacity: 0.5; cursor: not-allowed; }
-        .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.6; transition: 0.2s; }
-        .icon-btn:hover { opacity: 1; transform: scale(1.1); }
-        
-        /* Status Badges */
+
         .status-badge { font-size: 10px; padding: 4px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
         .status-pending { background: rgba(234, 179, 8, 0.15); color: var(--warning); border: 1px solid rgba(234, 179, 8, 0.3); }
-        .status-published { background: rgba(34, 197, 94, 0.15); color: var(--success); border: 1px solid rgba(34, 197, 94, 0.3); }
-        .status-failed { background: rgba(239, 68, 68, 0.15); color: var(--error); border: 1px solid rgba(239, 68, 68, 0.3); }
 
-        /* Media */
-        .upload-area { border: 2px dashed var(--border-color); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; transition: 0.2s; }
-        .upload-area:hover { border-color: var(--accent-glow); background: rgba(192, 132, 252, 0.03); }
+        /* Медиа */
+        .upload-area { border: 2px dashed var(--border-color); border-radius: 16px; padding: 30px; text-align: center; cursor: pointer; margin-bottom: 20px; }
         .preview-container { position: relative; width: 100%; display: none; margin-bottom: 15px; }
         .preview-box { width: 100%; height: 220px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border-color); }
-        .remove-media { position: absolute; top: 10px; right: 10px; background: var(--error); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-weight: bold; }
+        .remove-media { position: absolute; top: 10px; right: 10px; background: var(--error); color: white; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; }
 
-        /* Modals */
+        /* Модальные окна */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(8px); }
         .modal { background: var(--bg-sidebar); width: 900px; max-height: 90vh; border-radius: 24px; border: 1px solid var(--border-color); overflow: hidden; display: flex; flex-direction: column; }
         .modal-grid { display: grid; grid-template-columns: 1.3fr 1fr; flex: 1; overflow-y: auto; }
         
         .connect-modal { background: var(--bg-sidebar); width: 600px; border-radius: 24px; border: 1px solid var(--border-color); padding: 30px; }
         .channels-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
-        .channel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 16px; padding: 25px 15px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .channel-card:hover { border-color: var(--accent-glow); transform: translateY(-3px); background: rgba(192, 132, 252, 0.05); }
-        .channel-icon { font-size: 32px; margin-bottom: 10px; }
-        .channel-name { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-
-        .plat-btn { padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; text-align: center; font-size: 12px; transition: 0.2s;}
+        .channel-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 16px; padding: 25px 15px; text-align: center; cursor: pointer; }
+        
+        .plat-btn { padding: 10px; background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 10px; cursor: pointer; text-align: center; font-size: 12px; }
         .plat-btn.active { border-color: var(--accent-glow); color: var(--btn-light); background: rgba(192, 132, 252, 0.1); }
         
         .datetime-split { display: flex; gap: 10px; margin-bottom: 20px; }
-        .datetime-split > div { flex: 1; }
         .datetime-split label { font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 8px; display: block; }
-        .datetime-split input { margin-bottom: 0; }
 
         #auth-screen { position: fixed; inset: 0; background: var(--bg-main); z-index: 5000; display: flex; align-items: center; justify-content: center; }
     </style>
@@ -110,14 +98,11 @@
         <div class="nav-item active" onclick="switchView('calendar', this)">🗓 Календарь</div>
         <div class="nav-item" onclick="switchView('list', this)">📋 Очередь</div>
         <div class="nav-item" onclick="switchView('analytics', this)">📊 Аналитика</div>
-        <div class="nav-item" onclick="switchView('ideas', this)">💡 Идеи</div>
         
         <div class="divider"></div>
         <div class="section-title">Каналы</div>
         <div id="connectedChannelsList"></div>
-        <div class="nav-item" style="color: var(--btn-light);" onclick="openConnectModal()">
-            <span style="font-size: 18px; font-weight: bold;">+</span> Подключить канал
-        </div>
+        <div class="nav-item" style="color: var(--btn-light);" onclick="openConnectModal()">+ Подключить канал</div>
 
         <div style="margin-top: auto; padding: 25px;">
             <button onclick="logout()" style="background: none; border: 1px solid var(--border-color); color: var(--text-muted); padding: 12px; width: 100%; border-radius: 12px; cursor: pointer;">Выход</button>
@@ -143,8 +128,7 @@
             <div id="listViewContainer"></div>
         </div>
         
-        <div id="v-analytics" class="view-section"><h1 style="font-size: 32px; margin-bottom: 30px;">📊 Аналитика</h1></div>
-        <div id="v-ideas" class="view-section"><h1 style="font-size: 32px; margin-bottom: 30px;">💡 Генератор идей</h1></div>
+        <div id="v-analytics" class="view-section"><h1 style="font-size: 32px;">📊 Аналитика</h1></div>
     </div>
 
     <div class="modal-overlay" id="postModal">
@@ -160,23 +144,20 @@
                         <button class="remove-media" onclick="removeMedia()">&times;</button>
                     </div>
                     <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                        <div style="font-size: 30px; margin-bottom: 10px;">☁️</div>
                         📁 Нажми для загрузки медиа
                         <input type="file" id="fileInput" hidden onchange="handleFileSelect(this)">
                     </div>
-                    
                     <textarea id="mainText" rows="6" placeholder="Текст поста..."></textarea>
-                    
-                    <label style="font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom:10px; display:block;">Опубликовать в:</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;" id="dynamicPlatList"></div>
+                    <label style="font-size: 10px; color: var(--text-muted); font-weight: 800; text-transform: uppercase;">Опубликовать в:</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;" id="dynamicPlatList"></div>
                 </div>
                 <div style="padding: 35px; background: var(--bg-panel);">
                     <div class="datetime-split">
-                        <div><label>Дата</label><input type="date" id="postDateOnly"></div>
-                        <div><label>Время</label><input type="time" id="postTimeOnly"></div>
+                        <div style="flex:1;"><label>Дата</label><input type="date" id="postDateOnly"></div>
+                        <div style="flex:1;"><label>Время</label><input type="time" id="postTimeOnly"></div>
                     </div>
                     <button class="action" id="saveBtn" onclick="savePost()">Запланировать</button>
-                    <button id="deleteBtn" style="margin-top: 15px; width:100%; background:none; border:1px solid var(--error); color:var(--error); padding:12px; border-radius:12px; cursor:pointer; font-weight:700; display:none;" onclick="deletePost()">Удалить пост</button>
+                    <button id="deleteBtn" style="margin-top: 15px; width:100%; background:none; border:1px solid var(--error); color:var(--error); padding:12px; border-radius:12px; display:none;" onclick="deletePost()">Удалить пост</button>
                 </div>
             </div>
         </div>
@@ -185,31 +166,27 @@
     <div class="modal-overlay" id="connectModal">
         <div class="connect-modal">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="font-size: 20px;">Подключить канал</h2>
+                <h2>Подключить канал</h2>
                 <span style="cursor:pointer; font-size: 28px;" onclick="closeModal('connectModal')">&times;</span>
             </div>
             <div class="channels-grid">
-                <div class="channel-card" onclick="connectChannel('Instagram', '📸')"><div class="channel-icon">📸</div><div class="channel-name">Instagram</div></div>
-                <div class="channel-card" onclick="connectChannel('TikTok', '🎵')"><div class="channel-icon">🎵</div><div class="channel-name">TikTok</div></div>
-                <div class="channel-card" onclick="connectChannel('Telegram', '✈️')"><div class="channel-icon">✈️</div><div class="channel-name">Telegram</div></div>
-                <div class="channel-card" onclick="connectChannel('YouTube', '▶️')"><div class="channel-icon">▶️</div><div class="channel-name">YouTube</div></div>
-                <div class="channel-card" onclick="connectChannel('Pinterest', '📌')"><div class="channel-icon">📌</div><div class="channel-name">Pinterest</div></div>
+                <div class="channel-card" onclick="connectChannel('Instagram', '📸')">📸 Instagram</div>
+                <div class="channel-card" onclick="connectChannel('TikTok', '🎵')">🎵 TikTok</div>
+                <div class="channel-card" onclick="connectChannel('Telegram', '✈️')">✈️ Telegram</div>
+                <div class="channel-card" onclick="connectChannel('YouTube', '▶️')">▶️ YouTube</div>
             </div>
         </div>
     </div>
 
     <script> 
-        // ТВОЙ КЛЮЧ УЖЕ ЗДЕСЬ!
         const SUPABASE_URL = "https://ltrglnjbsyoelkagqbbh.supabase.co"; 
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cmdsbmpic3lvZWxrYWdxYmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgyNDksImV4cCI6MjA5MDc1NDI0OX0.VhZiD9OVDfv3nlfYysBNXPsax4RkevErwWImMlqW9BM"; 
         const WEBHOOK_URL = "https://hook.eu1.make.com/m64x9tlp6fg73uf9yxan9swrb80th85o"; 
         
         const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        let user = null, posts = [], currentEditingId = null, selectedFile = null, mediaToRemove = null;
-        let currentDate = new Date();
-        let connectedChannels = []; 
+        let user = null, posts = [], selectedFile = null, currentDate = new Date(), connectedChannels = []; 
 
+        // --- УВЕДОМЛЕНИЯ ---
         function showToast(msg, type = 'success') {
             const c = document.getElementById('toast-container');
             const t = document.createElement('div');
@@ -220,12 +197,13 @@
             setTimeout(() => t.remove(), 3000);
         }
 
-        // --- AUTH ---
+        // --- АВТОРИЗАЦИЯ ---
         async function handleAuth() {
             const email = document.getElementById('email').value, password = document.getElementById('pass').value;
             const btn = document.getElementById('authBtn');
             if(!email || !password) return showToast("Заполни поля!", "error");
             btn.disabled = true; btn.innerText = "Вход...";
+            
             const { data, error } = await db.auth.signInWithPassword({ email, password });
             if (error) {
                 const { error: signUpError } = await db.auth.signUp({ email, password });
@@ -244,114 +222,127 @@
             else { document.getElementById('auth-screen').style.display = 'flex'; document.getElementById('app-body').style.display = 'none'; }
         });
 
-        function initApp() { document.getElementById('auth-screen').style.display = 'none'; document.getElementById('app-body').style.display = 'block'; loadData(); }
+        function initApp() { 
+            document.getElementById('auth-screen').style.display = 'none'; 
+            document.getElementById('app-body').style.display = 'block'; 
+            loadData(); 
+        }
+
         function logout() { db.auth.signOut(); }
 
-        // --- LOAD DATA ---
+        // --- ЗАГРУЗКА ДАННЫХ ---
         async function loadData() {
-            // Игнорируем ошибку загрузки из отсутствующей таблицы posts
-            const { data: postData, error: postErr } = await db.from('posts').select('*').eq('user_id', user.id).order('post_date', { ascending: true });
-            if (!postErr) posts = postData;
+            const { data: postData } = await db.from('posts').select('*').eq('user_id', user.id).order('post_date', { ascending: true });
+            if (postData) posts = postData;
             
-            // Грузим каналы из БД
-            const { data: chanData, error: chanErr } = await db.from('channels').select('*').eq('user_id', user.id);
-            if (!chanErr) connectedChannels = chanData || [];
+            const { data: chanData } = await db.from('channels').select('*').eq('user_id', user.id);
+            if (chanData) connectedChannels = chanData;
 
             renderChannels();
             renderCalendar(); 
             renderListView();
         }
 
+        // --- РАБОТА С КАНАЛАМИ ---
         function openConnectModal() { document.getElementById('connectModal').style.display = 'flex'; }
         
         async function connectChannel(name, icon) {
-            if (!connectedChannels.find(c => c.platform === name)) {
-                const { data, error } = await db.from('channels').insert([{ user_id: user.id, platform: name, icon: icon }]);
-                if (error) { showToast(error.message, "error"); } 
-                else {
-                    showToast(`Канал ${name} привязан!`, "success");
-                    loadData();
-                }
-            } else { 
-                showToast(`${name} уже подключен.`, "warning"); 
-            }
-            closeModal('connectModal');
+            if (connectedChannels.find(c => c.platform === name)) return showToast("Уже подключен", "warning");
+            const { error } = await db.from('channels').insert([{ user_id: user.id, platform: name, icon: icon }]);
+            if (error) showToast(error.message, "error");
+            else { showToast("Канал подключен!"); loadData(); closeModal('connectModal'); }
         }
 
         function renderChannels() {
-            const container = document.getElementById('connectedChannelsList');
-            container.innerHTML = connectedChannels.map(c => `
-                <div class="channel-item"><span>${c.icon}</span> ${c.platform} <div class="status-dot" style="margin-left: auto;"></div></div>
+            document.getElementById('connectedChannelsList').innerHTML = connectedChannels.map(c => `
+                <div class="channel-item"><span>${c.icon}</span> ${c.platform} <div class="status-dot" style="margin-left:auto;"></div></div>
             `).join('');
         }
 
-        function buildDynamicPlatList(activePlatforms = []) {
-            const container = document.getElementById('dynamicPlatList');
-            container.innerHTML = connectedChannels.map(c => {
-                const isActive = activePlatforms.includes(c.platform) ? 'active' : '';
-                return `<div class="plat-btn ${isActive}" onclick="togglePlat(this)" data-name="${c.platform}">${c.icon} ${c.platform}</div>`;
-            }).join('');
-        }
-        function togglePlat(el) { el.classList.toggle('active'); }
+        // --- ЛОГИКА СОХРАНЕНИЯ (SUPABASE + WEBHOOK) ---
+        async function savePost() {
+            const btn = document.getElementById('saveBtn');
+            const text = document.getElementById('mainText').value;
+            const dDate = document.getElementById('postDateOnly').value;
+            const dTime = document.getElementById('postTimeOnly').value;
+            const plats = Array.from(document.querySelectorAll('.plat-btn.active')).map(b => b.dataset.name);
 
-        // --- UX PROTECTION ---
-        function attemptOpenModal(dateStr = '') {
-            if(connectedChannels.length === 0) {
-                showToast("Сначала подключите хотя бы один канал слева!", "warning");
-                return;
+            if (!dDate || !dTime || plats.length === 0) return showToast("Заполни все поля!", "error");
+
+            btn.disabled = true; btn.innerText = "Сохранение...";
+            const fullDateTime = `${dDate}T${dTime}`;
+
+            try {
+                let media_url = null;
+                if (selectedFile) {
+                    const ext = selectedFile.name.split('.').pop();
+                    const fileName = `${Date.now()}.${ext}`;
+                    const { data, error: upErr } = await db.storage.from('media').upload(`${user.id}/${fileName}`, selectedFile);
+                    if (!upErr) media_url = db.storage.from('media').getPublicUrl(`${user.id}/${fileName}`).data.publicUrl;
+                }
+
+                const postObj = { user_id: user.id, text, post_date: fullDateTime, platforms: plats, media_url, status: 'pending' };
+                
+                // 1. В базу
+                const { error: dbErr } = await db.from('posts').insert([postObj]);
+                if (dbErr) throw dbErr;
+
+                // 2. В Make
+                fetch(WEBHOOK_URL, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(postObj) });
+
+                showToast("Пост запланирован!");
+                closeModal('postModal');
+                loadData();
+            } catch (e) {
+                showToast(e.message, "error");
+            } finally {
+                btn.disabled = false; btn.innerText = "Запланировать";
             }
-            openModal(dateStr);
         }
 
-        // --- CALENDAR & LIST ---
-        function switchView(v, el) {
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            if(el) el.classList.add('active');
-            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
-            document.getElementById('v-' + v).classList.add('active');
-        }
-
-        function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
-
+        // --- ИНТЕРФЕЙС (КАЛЕНДАРЬ И СПИСОК) ---
         function renderCalendar() {
             const grid = document.getElementById('grid');
             grid.innerHTML = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'].map(d => `<div class="cal-header">${d}</div>`).join('');
-            const year = currentDate.getFullYear(), month = currentDate.getMonth();
-            const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
-            document.getElementById('monthTitle').innerText = `${monthNames[month]} ${year}`;
             
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const year = currentDate.getFullYear(), month = currentDate.getMonth();
+            document.getElementById('monthTitle').innerText = `${new Intl.DateTimeFormat('ru-RU', {month:'long', year:'numeric'}).format(currentDate)}`;
+            
             const firstDay = new Date(year, month, 1).getDay();
             const startOffset = firstDay === 0 ? 6 : firstDay - 1;
-            
-            for (let i = 0; i < startOffset; i++) grid.innerHTML += '<div class="cal-day" style="border:none; background:none;"></div>';
-            
-            const now = new Date();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < startOffset; i++) grid.innerHTML += '<div></div>';
             for (let d = 1; d <= daysInMonth; d++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                const dayPosts = posts.filter(p => p.post_date && p.post_date.includes(dateStr));
-                const isToday = (d === now.getDate() && month === now.getMonth() && year === now.getFullYear());
-                grid.innerHTML += `<div class="cal-day" onclick="if(event.target==this) attemptOpenModal('${dateStr}')">
-                    <div class="day-num ${isToday ? 'today' : ''}">${d}</div>
-                    ${dayPosts.map(p => `<div class="post-chip" onclick="editPost('${p.id}')">${p.text || '📄 Медиа'}</div>`).join('')}
-                </div>`;
+                const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const dayPosts = posts.filter(p => p.post_date.includes(dateStr));
+                grid.innerHTML += `
+                    <div class="cal-day" onclick="attemptOpenModal('${dateStr}')">
+                        <div class="day-num">${d}</div>
+                        ${dayPosts.map(p => `<div class="post-chip">${p.text || 'Медиа'}</div>`).join('')}
+                    </div>`;
             }
         }
 
         function renderListView() {
             const c = document.getElementById('listViewContainer');
-            c.innerHTML = posts.length ? posts.map(p => {
-                let statusClass = 'status-pending'; let statusText = 'Ожидает';
-                return `
-                <div class="list-card" onclick="editPost('${p.id}')">
-                    <div style="flex:1;">
-                        <div style="display:flex; align-items:center; gap: 10px; margin-bottom: 8px;">
-                            <span class="status-badge ${statusClass}">${statusText}</span>
-                        </div>
-                        <p style="margin:0 0 5px 0; font-size: 15px;">${p.text || '📄 Медиа контент'}</p>
+            c.innerHTML = posts.length ? posts.map(p => `
+                <div class="list-card">
+                    <div>
+                        <span class="status-badge status-pending">Ожидает</span>
+                        <p style="margin-top:10px;">${p.text || 'Без текста'}</p>
+                        <small style="color:var(--text-muted)">${p.post_date.replace('T', ' ')}</small>
                     </div>
-                </div>`;
-            }).join('') : '<p style="text-align:center; color:var(--text-muted);">Очередь пуста</p>';
+                </div>
+            `).join('') : '<p>Очередь пуста</p>';
+        }
+
+        // --- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+        function switchView(v, el) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('v-' + v).classList.add('active');
         }
 
         function handleFileSelect(input) {
@@ -367,118 +358,19 @@
             selectedFile = null;
             document.getElementById('previewContainer').style.display = 'none';
             document.getElementById('uploadArea').style.display = 'block';
-            document.getElementById('fileInput').value = '';
         }
 
- 
-               // --- ЗАПИСЬ В ТАБЛИЦУ SUPABASE (ОБЛАКО) ---
-async function triggerWebhook(postObj) {
-             try {
-                // Отправляем данные в таблицу posts вместо вебхука
-                const { data, error } = await supabase
-                  .from('posts')
-                  .insert([
-                    { 
-                      text: postObj.title,       // Берем текст из объекта поста
-                      media_url: postObj.media_url, // Берем ссылку на видео
-                      status: 'pending',         // Статус "в ожидании" для Make
-                      platforms: 'youtube'       // Указываем, что это для ютуба
-                    }
-                  ]);
-
-                if (error) throw error; // Если база выдаст ошибку, прыгаем в catch
-
-                // Если мы дошли сюда, значит запись в базу прошла успешно!
-                showToast("Данные сохранены в Supabase!");
-
-            } catch (e) { 
-                console.error("Ошибка при записи в базу:", e);
-                showToast("Не удалось сохранить в облако", "error");
-            }
-        }
-
-                
-                if (res.ok) {
-                    showToast("Успешно отправлено в автопостинг!");
-                } else {
-                    showToast("Ошибка на стороне сервера (Webhook)", "error");
-                }
-            } catch (e) { 
-                showToast("Не удалось связаться с Webhook", "error");
-            }
-        }
-
-        // --- SAVING LOGIC (BYPASS DATABASE FOR TEST) ---
-        async function savePost() {
-            const btn = document.getElementById('saveBtn');
-            if (btn.disabled) return;
-            
-            const text = document.getElementById('mainText').value;
-            const dDate = document.getElementById('postDateOnly').value;
-            const dTime = document.getElementById('postTimeOnly').value;
-            const plats = Array.from(document.querySelectorAll('.plat-btn.active')).map(b => b.dataset.name);
-            
-            if (!dDate || !dTime) return showToast("Заполни дату и время!", "error");
-            if (plats.length === 0) return showToast("Выбери хотя бы один канал!", "error");
-            
-            const fullDateTime = `${dDate}T${dTime}`;
-            btn.disabled = true; btn.innerText = "Отправка в Make...";
-            
-            try {
-                let media_url = null;
-                
-                // Загружаем файл, если он выбран
-                if (selectedFile) {
-                    const ext = selectedFile.name.split('.').pop();
-                    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-                    const { data, error } = await db.storage.from('media').upload(`${user.id}/${fileName}`, selectedFile);
-                    if (error) {
-                        showToast("Ошибка загрузки файла, отправляем без него", "warning");
-                    } else {
-                        media_url = db.storage.from('media').getPublicUrl(`${user.id}/${fileName}`).data.publicUrl;
-                    }
-                }
-
-                // Данные для отправки
-                const postData = { user_id: user.id, text, post_date: fullDateTime, platforms: plats, media_url };
-                
-                // Отправляем прямо в Make
-                await triggerWebhook(postData);
-                closeModal('postModal'); 
-                
-            } catch (err) { 
-                showToast(err.message, "error"); 
-            } finally {
-                btn.disabled = false; 
-                btn.innerText = "Запланировать"; 
-            }
-        }
-
-        function openModal(dateStr = '') {
-            currentEditingId = null; selectedFile = null; mediaToRemove = null;
-            document.getElementById('modalTitle').innerText = "Новая публикация";
-            document.getElementById('mainText').value = "";
-            document.getElementById('postDateOnly').value = dateStr || "";
-            document.getElementById('postTimeOnly').value = dateStr ? "12:00" : "";
-            
-            document.getElementById('previewContainer').style.display = 'none';
-            document.getElementById('uploadArea').style.display = 'block';
-            document.getElementById('deleteBtn').style.display = 'none';
-            document.getElementById('fileInput').value = '';
-            document.getElementById('saveBtn').disabled = false;
-            document.getElementById('saveBtn').innerText = "Запланировать";
-            
-            buildDynamicPlatList([]); 
+        function attemptOpenModal(dateStr = '') {
+            if (connectedChannels.length === 0) return showToast("Сначала подключи канал!", "warning");
             document.getElementById('postModal').style.display = 'flex';
+            document.getElementById('postDateOnly').value = dateStr;
+            document.getElementById('dynamicPlatList').innerHTML = connectedChannels.map(c => `
+                <div class="plat-btn" onclick="this.classList.toggle('active')" data-name="${c.platform}">${c.icon} ${c.platform}</div>
+            `).join('');
         }
 
-        function editPost(id) {
-            // Упрощенная логика для теста
-            openModal();
-        }
-
-        function closeModal(modalId) { document.getElementById(modalId).style.display = 'none'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function changeMonth(dir) { currentDate.setMonth(currentDate.getMonth() + dir); renderCalendar(); }
     </script>
 </body>
 </html>
-
