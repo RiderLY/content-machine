@@ -1,196 +1,463 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Lumina OS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina OS - Управление контентом</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0b0b10',
+                        card: '#13131a',
+                        panel: '#1c1c26',
+                        primary: '#2c4bff',
+                        neonPurple: '#c084fc',
+                        neonBlue: '#38bdf8',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
-<style>
-body{margin:0;background:#0b0b10;color:#fff;font-family:Inter}
-.sidebar{width:260px;background:#13131a}
-.glass{background:rgba(19,19,26,0.7);backdrop-filter:blur(10px)}
-.neon{border:1px solid transparent;background-clip:padding-box;position:relative}
-.neon:before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(90deg,#38bdf8,#c084fc);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor}
-.calendar-month{display:grid;grid-template-columns:repeat(7,1fr);flex:1}
-.calendar-week{display:grid;grid-template-columns:60px repeat(7,1fr)}
-.cell{border:1px solid rgba(255,255,255,0.05);min-height:80px}
-</style>
+    <style>
+        body, html {
+            margin: 0; padding: 0;
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            background-color: #0b0b10;
+            color: #ffffff;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2c4bff; border-radius: 10px; }
+
+        .neon-text {
+            background: linear-gradient(to right, #38bdf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .neon-border {
+            position: relative;
+            background: #13131a;
+            background-clip: padding-box;
+            border: 1px solid transparent;
+        }
+        .neon-border::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            z-index: -1;
+            margin: -1px;
+            border-radius: inherit;
+            background: linear-gradient(to right, #38bdf8, #c084fc);
+        }
+
+        .nav-item { transition: all 0.2s ease; }
+        .nav-item.active {
+            background: rgba(44, 75, 255, 0.15);
+            border-right: 3px solid #2c4bff;
+            box-shadow: inset 0 0 20px rgba(44, 75, 255, 0.1);
+            color: #fff;
+        }
+        .nav-item:hover:not(.active) { background: rgba(255, 255, 255, 0.03); color: #fff; }
+
+        /* Календарь */
+        .calendar-grid-month {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-auto-rows: minmax(0, 1fr);
+            flex: 1;
+            width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            border-left: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .calendar-grid-week {
+            display: grid;
+            grid-template-columns: 60px repeat(7, minmax(0, 1fr));
+            grid-auto-rows: 60px;
+            width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .cell {
+            border-right: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 12px;
+            min-height: 0;
+            background: #13131a;
+            transition: background 0.2s;
+        }
+        .cell:hover { background: rgba(255,255,255,0.02); }
+
+        .platform-tab.active {
+            border-bottom: 2px solid #2c4bff;
+            color: #38bdf8;
+        }
+
+        .dropdown-content {
+            display: none; opacity: 0; transform: translateY(-10px); transition: all 0.2s;
+        }
+        .dropdown-content.show {
+            display: flex; opacity: 1; transform: translateY(0);
+        }
+
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Кнопки переключателя Неделя/Месяц */
+        .sw-btn {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9ca3af;
+            transition: 0.2s;
+        }
+        .sw-btn.active {
+            background: #353545;
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+    </style>
 </head>
+<body class="flex text-sm">
 
-<body class="flex h-screen overflow-hidden">
+    <aside class="w-[260px] flex-shrink-0 bg-card border-r border-white/10 flex flex-col z-20">
+        <div class="px-6 py-8 font-extrabold text-2xl tracking-tight neon-text flex items-center gap-2">
+            <i class="ph-fill ph-sparkle"></i> Lumina
+        </div>
 
-<!-- SIDEBAR -->
-<div class="sidebar flex flex-col p-4 gap-2">
-<div class="text-xl font-bold">Lumina</div>
+        <div class="px-5 mb-6 relative">
+            <button onclick="toggleDropdown('createMenu')" class="w-full neon-border rounded-lg py-3 flex items-center justify-center gap-2 font-semibold hover:brightness-125 transition-all">
+                <i class="ph-bold ph-plus"></i> Создать
+            </button>
+            
+            <div id="createMenu" class="dropdown-content flex-col absolute top-full left-5 right-5 mt-2 bg-panel border border-white/10 rounded-lg shadow-2xl overflow-hidden z-50">
+                <div onclick="openModal('composerModal')" class="px-4 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-2 text-gray-300 hover:text-white">
+                    <i class="ph ph-lightning"></i> Быстрый пост
+                </div>
+                <div class="px-4 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-2 text-gray-300 hover:text-white">
+                    <i class="ph ph-lightbulb"></i> Идеи
+                </div>
+                <div class="px-4 py-3 hover:bg-white/5 cursor-pointer flex items-center gap-2 text-gray-300 hover:text-white">
+                    <i class="ph ph-magic-wand"></i> ИИ-ассистент
+                </div>
+            </div>
+        </div>
 
-<button onclick="openCreate()" class="neon p-3 rounded">Создать</button>
-<button onclick="switchView('publish')" class="p-2">Публиковать</button>
-<button onclick="switchView('community')" class="p-2">Сообщество</button>
+        <nav class="flex-1 overflow-y-auto">
+            <div class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4">Управление</div>
+            
+            <div class="nav-item active flex items-center gap-3 px-6 py-3 cursor-pointer text-gray-400" onclick="switchMainView('calendar', this)">
+                <i class="ph ph-calendar-blank text-lg"></i> Календарь
+            </div>
+            <div class="nav-item flex items-center gap-3 px-6 py-3 cursor-pointer text-gray-400" onclick="switchMainView('community', this)">
+                <i class="ph ph-chats text-lg"></i> Сообщество
+            </div>
 
-<div class="mt-4">
-<div class="text-xs text-gray-400">Каналы</div>
-<div id="channels"></div>
-<button class="mt-2 p-2 neon rounded">+ Подключить</button>
-</div>
-</div>
+            <div class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-8 flex justify-between items-center">
+                Каналы
+                <i class="ph ph-plus cursor-pointer hover:text-white transition" onclick="openModal('connectModal')"></i>
+            </div>
+            
+            <div id="channelsList" class="flex flex-col gap-1 mt-2">
+                </div>
+        </nav>
+    </aside>
 
-<!-- MAIN -->
-<div class="flex-1 flex flex-col">
+    <main class="flex-1 flex flex-col min-w-0 bg-dark relative">
+        
+        <header class="h-[70px] flex-shrink-0 border-b border-white/10 flex items-center justify-between px-8 bg-dark z-10">
+            <h1 id="mainTitle" class="text-xl font-bold">Календарь</h1>
+            
+            <div id="calendarControls" class="flex gap-1 bg-panel p-1 rounded-lg border border-white/5">
+                <button id="btn-week" class="sw-btn" onclick="switchCalendarMode('week')">Неделя</button>
+                <button id="btn-month" class="sw-btn active" onclick="switchCalendarMode('month')">Месяц</button>
+            </div>
+        </header>
 
-<div class="p-4 flex justify-between items-center border-b border-white/10">
-<div class="text-xl" id="title">Публиковать</div>
-<div>
-<button onclick="setCalendar('month')">Месяц</button>
-<button onclick="setCalendar('week')">Неделя</button>
-</div>
-</div>
+        <section id="view-calendar" class="flex-1 flex flex-col min-h-0 w-full overflow-y-auto">
+            <div class="grid grid-cols-7 border-b border-white/10 text-center py-3 text-xs font-semibold text-gray-500 bg-card">
+                <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
+            </div>
+            <div id="calendarGrid" class="calendar-grid-month">
+                </div>
+        </section>
 
-<div id="publishView" class="flex-1 flex flex-col">
-<div id="calendar" class="calendar-month"></div>
-</div>
+        <section id="view-community" class="flex-1 hidden flex-row h-full overflow-hidden">
+            <div class="w-64 border-r border-white/10 bg-card p-6 flex flex-col gap-4">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Выберите соцсеть</h3>
+                
+                <button class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 hover:border-primary transition text-gray-300">
+                    <i class="ph-fill ph-tiktok-logo text-xl text-white"></i> TikTok
+                </button>
+                <button class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 hover:border-primary transition text-gray-300">
+                    <i class="ph-fill ph-instagram-logo text-xl text-pink-500"></i> Instagram
+                </button>
+                <button class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 hover:border-primary transition text-gray-300">
+                    <i class="ph-fill ph-youtube-logo text-xl text-red-500"></i> YouTube
+                </button>
+            </div>
+            
+            <div class="flex-1 p-8 overflow-y-auto bg-dark">
+                <div class="flex items-center justify-center h-full text-gray-500 flex-col gap-4">
+                    <i class="ph ph-chats-teardrop text-6xl text-white/10"></i>
+                    <p>Выберите канал слева, чтобы прочитать и ответить на комментарии.</p>
+                </div>
+            </div>
+        </section>
 
-<div id="communityView" class="hidden p-4">Комментарии</div>
+    </main>
 
-</div>
+    <div id="connectModal" class="modal-overlay">
+        <div class="bg-card w-full max-w-md p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-6 relative">
+            <button onclick="closeModal('connectModal')" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+            
+            <div>
+                <h3 class="text-xl font-bold text-white mb-1">Подключить канал</h3>
+                <p class="text-sm text-gray-400">Выберите платформу для авторизации</p>
+            </div>
 
-<!-- CREATE MODAL -->
-<div id="createModal" class="fixed inset-0 hidden">
-<div class="absolute inset-0 bg-black/70"></div>
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="mockConnectChannel('TikTok', 'bg-black text-white', 'ph-tiktok-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-tiktok-logo text-3xl"></i>
+                    <span class="font-medium">TikTok</span>
+                </button>
+                <button onclick="mockConnectChannel('Instagram', 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 text-white', 'ph-instagram-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-instagram-logo text-3xl text-pink-500"></i>
+                    <span class="font-medium">Instagram</span>
+                </button>
+                <button onclick="mockConnectChannel('YouTube', 'bg-red-600 text-white', 'ph-youtube-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-youtube-logo text-3xl text-red-500"></i>
+                    <span class="font-medium">YouTube</span>
+                </button>
+                <button onclick="mockConnectChannel('Pinterest', 'bg-red-500 text-white', 'ph-pinterest-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-pinterest-logo text-3xl text-red-500"></i>
+                    <span class="font-medium">Pinterest</span>
+                </button>
+            </div>
+        </div>
+    </div>
 
-<div class="absolute inset-0 flex">
-<div class="flex-1 bg-[#13131a] p-6 overflow-auto">
+    <div id="composerModal" class="modal-overlay">
+        <div class="bg-card w-[90%] max-w-[1100px] h-[85vh] rounded-2xl border border-white/10 flex overflow-hidden shadow-2xl shadow-neonPurple/20">
+            <div class="flex-[1.5] border-r border-white/10 flex flex-col bg-card relative">
+                <div class="h-[60px] border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
+                    <h3 class="font-bold text-lg neon-text">Новая публикация</h3>
+                    <button onclick="closeModal('composerModal')" class="text-gray-400 hover:text-white transition"><i class="ph ph-x text-xl"></i></button>
+                </div>
 
-<div class="flex gap-4 mb-4">
-<button onclick="showCreate('ideas')">Идеи</button>
-<button onclick="showCreate('post')">Создать публикацию</button>
-<button onclick="showCreate('ai')">ИИ</button>
-</div>
+                <div class="p-6 flex-1 overflow-y-auto flex flex-col gap-6">
+                    <div class="flex gap-4 border-b border-white/10 pb-2">
+                        <button onclick="setPlatform('tiktok')" class="platform-tab active pb-2 flex items-center gap-2 text-gray-400 font-medium">
+                            <i class="ph-fill ph-tiktok-logo"></i> TikTok
+                        </button>
+                        <button onclick="setPlatform('instagram')" class="platform-tab pb-2 flex items-center gap-2 text-gray-400 font-medium">
+                            <i class="ph-fill ph-instagram-logo"></i> Instagram
+                        </button>
+                        <button onclick="setPlatform('youtube')" class="platform-tab pb-2 flex items-center gap-2 text-gray-400 font-medium">
+                            <i class="ph-fill ph-youtube-logo"></i> YouTube
+                        </button>
+                        <button onclick="setPlatform('pinterest')" class="platform-tab pb-2 flex items-center gap-2 text-gray-400 font-medium">
+                            <i class="ph-fill ph-pinterest-logo"></i> Pinterest
+                        </button>
+                    </div>
 
-<!-- IDEAS -->
-<div id="ideasBlock">
-<input id="catName" placeholder="Категория" class="w-full p-2 bg-black/30 mb-2">
-<button onclick="addCategory()">+</button>
-<div id="ideas"></div>
-</div>
+                    <div class="relative">
+                        <textarea id="postContent" class="w-full h-32 bg-panel border border-white/10 rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-primary resize-none" placeholder="О чем хотите рассказать?"></textarea>
+                        
+                        <div class="absolute bottom-3 left-3 flex gap-2">
+                            <button class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400"><i class="ph ph-smiley"></i></button>
+                            <div class="relative">
+                                <button onclick="toggleDropdown('hashMenu')" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400"><i class="ph ph-hash"></i></button>
+                                <div id="hashMenu" class="dropdown-content absolute bottom-full left-0 mb-2 w-48 bg-panel border border-white/10 rounded-lg shadow-xl p-2 z-50">
+                                    <div class="text-xs font-bold text-gray-500 mb-2 px-2 uppercase">Группы хештегов</div>
+                                    <button onclick="insertHashtags('#tech #lumina #ai')" class="w-full text-left px-2 py-1.5 hover:bg-white/5 rounded text-gray-300">Технологии</button>
+                                    <button onclick="insertHashtags('#vlog #life #day')" class="w-full text-left px-2 py-1.5 hover:bg-white/5 rounded text-gray-300">Лайфстайл</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-<!-- POST -->
-<div id="postBlock" class="hidden">
-<textarea id="text" class="w-full h-32 bg-black/30"></textarea>
+                    <div class="border-2 border-dashed border-white/20 rounded-xl p-8 flex flex-col items-center justify-center text-gray-500 hover:border-primary hover:bg-primary/5 transition cursor-pointer">
+                        <i class="ph ph-image text-3xl mb-2"></i>
+                        <span class="font-medium">Перетащите файл или выберите его</span>
+                    </div>
 
-<div class="flex gap-2 mt-2">
-<button onclick="addEmoji('🔥')">😀</button>
-<button onclick="insertTags()">#</button>
-</div>
+                    <div id="settings-youtube" class="platform-settings hidden flex-col gap-4">
+                        <h4 class="font-bold text-gray-400 border-b border-white/5 pb-2 text-xs uppercase">Настройки YouTube</h4>
+                        <input type="text" placeholder="Заголовок видео" class="w-full bg-panel border border-white/10 rounded-lg p-3 text-white focus:outline-none">
+                    </div>
+                    <div id="settings-instagram" class="platform-settings hidden flex-col gap-4">
+                        <h4 class="font-bold text-gray-400 border-b border-white/5 pb-2 text-xs uppercase">Настройки Instagram</h4>
+                        <input type="text" placeholder="Первый комментарий (опционально)" class="w-full bg-panel border border-white/10 rounded-lg p-3 text-white focus:outline-none">
+                    </div>
+                    <div id="settings-pinterest" class="platform-settings hidden flex-col gap-4">
+                        <h4 class="font-bold text-gray-400 border-b border-white/5 pb-2 text-xs uppercase">Настройки Pinterest</h4>
+                        <input type="text" placeholder="Название Пина" class="w-full bg-panel border border-white/10 rounded-lg p-3 text-white focus:outline-none">
+                    </div>
+                </div>
 
-<select id="platform">
-<option>tiktok</option>
-<option>instagram</option>
-<option>youtube</option>
-<option>pinterest</option>
-</select>
+                <div class="h-[70px] border-t border-white/10 flex items-center justify-between px-6 bg-card flex-shrink-0">
+                    <input type="datetime-local" class="bg-panel border border-white/10 rounded-lg p-2 text-white text-sm focus:outline-none focus:border-primary">
+                    <button class="neon-border px-8 py-2.5 font-bold rounded-lg hover:brightness-110 transition">Запланировать</button>
+                </div>
+            </div>
 
-<button onclick="savePost()" class="mt-4">Сохранить</button>
-</div>
+            <div class="flex-1 bg-[#050508] p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                <div class="text-gray-500 font-bold tracking-widest uppercase text-xs mb-6 text-center">Предпросмотр</div>
+                
+                <div class="w-[280px] h-[580px] rounded-[3rem] border-8 border-[#1a1a24] bg-black relative shadow-2xl shadow-primary/10 overflow-hidden flex flex-col z-10">
+                    <div class="w-32 h-6 bg-[#1a1a24] absolute top-0 left-1/2 -translate-x-1/2 rounded-b-xl z-20"></div>
+                    <div class="flex-1 p-4 pt-10 text-white flex flex-col">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500"></div>
+                            <div class="text-sm font-bold">Lumina_OS</div>
+                        </div>
+                        <div class="w-full aspect-square bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-gray-600 mb-4">
+                            <i class="ph ph-image text-3xl"></i>
+                        </div>
+                        <div id="previewText" class="text-xs text-gray-300 line-clamp-4 leading-relaxed">
+                            Здесь появится текст вашей публикации...
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
+            </div>
+        </div>
+    </div>
 
-<div id="aiBlock" class="hidden">ИИ позже</div>
+    <script>
+        // -- НАВИГАЦИЯ САЙДБАР --
+        function switchMainView(viewId, el) {
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            el.classList.add('active');
 
-<button onclick="closeCreate()" class="mt-6">Закрыть</button>
+            document.querySelectorAll('section').forEach(sec => {
+                sec.classList.add('hidden');
+                sec.classList.remove('flex');
+            });
+            
+            const target = document.getElementById('view-' + viewId);
+            target.classList.remove('hidden');
+            target.classList.add('flex');
 
-</div>
+            document.getElementById('mainTitle').innerText = viewId === 'calendar' ? 'Календарь' : 'Сообщество';
+            document.getElementById('calendarControls').style.display = viewId === 'calendar' ? 'flex' : 'none';
+        }
 
-<div class="w-[320px] bg-black p-4">
-<div class="text-xs mb-2">Предпросмотр</div>
-<div id="preview" class="bg-white/5 h-[500px]"></div>
-</div>
+        // -- ПЕРЕКЛЮЧЕНИЕ МЕСЯЦ/НЕДЕЛЯ --
+        function switchCalendarMode(mode) {
+            document.querySelectorAll('.sw-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('btn-' + mode).classList.add('active');
 
-</div>
-</div>
+            const grid = document.getElementById('calendarGrid');
+            
+            if(mode === 'month') {
+                grid.className = 'calendar-grid-month';
+                renderMonth();
+            } else {
+                grid.className = 'calendar-grid-week';
+                renderWeek();
+            }
+        }
 
-<script>
-const db = supabase.createClient(
-"https://ltrglnjbsyoelkagqbbh.supabase.co",
-"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cmdsbmpic3lvZWxrYWdxYmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgyNDksImV4cCI6MjA5MDc1NDI0OX0.VhZiD9OVDfv3nlfYysBNXPsax4RkevErwWImMlqW9BM"
-);
+        function renderMonth() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            for(let i=1; i<=35; i++) {
+                grid.innerHTML += `<div class="cell flex flex-col"><span class="text-xs text-gray-500 font-medium">${i > 31 ? i-31 : i}</span></div>`;
+            }
+        }
 
-function switchView(v){
-document.getElementById('publishView').classList.add('hidden');
-document.getElementById('communityView').classList.add('hidden');
+        function renderWeek() {
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+            for(let hour=8; hour<=20; hour++) {
+                grid.innerHTML += `<div class="border-b border-r border-white/10 text-xs text-gray-500 p-2 text-right bg-card">${hour}:00</div>`;
+                for(let day=0; day<7; day++) {
+                    grid.innerHTML += `<div class="border-b border-r border-white/10 hover:bg-white/5 transition cursor-pointer"></div>`;
+                }
+            }
+        }
 
-document.getElementById(v+'View').classList.remove('hidden');
-}
+        // -- ИМИТАЦИЯ ПОДКЛЮЧЕНИЯ СОЦСЕТИ --
+        function mockConnectChannel(name, bgClass, iconClass) {
+            const list = document.getElementById('channelsList');
+            const newChannel = `
+                <div class="flex items-center gap-3 px-6 py-2 cursor-pointer text-gray-300 hover:bg-white/5 hover:text-white transition">
+                    <div class="w-6 h-6 rounded flex items-center justify-center text-xs ${bgClass}">
+                        <i class="ph-fill ${iconClass}"></i>
+                    </div>
+                    @lumina_${name.toLowerCase()}
+                </div>
+            `;
+            list.insertAdjacentHTML('beforeend', newChannel);
+            closeModal('connectModal');
+        }
 
-function openCreate(){document.getElementById('createModal').classList.remove('hidden')}
-function closeCreate(){document.getElementById('createModal').classList.add('hidden')}
+        // -- МОДАЛКИ И ПРОЧЕЕ --
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-function showCreate(t){
-['ideas','post','ai'].forEach(x=>document.getElementById(x+'Block').classList.add('hidden'))
-document.getElementById(t+'Block').classList.remove('hidden')
-}
+        function setPlatform(platform) {
+            document.querySelectorAll('.platform-tab').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
 
-// IDEAS
-let cats=[]
-function addCategory(){
-const name=catName.value
-cats.push({name,ideas:[]})
-renderIdeas()
-}
-function renderIdeas(){
-ideas.innerHTML=''
-cats.forEach(c=>{
-let div=document.createElement('div')
-div.innerHTML='<b>'+c.name+'</b>'
-ideas.appendChild(div)
-})
-}
+            document.querySelectorAll('.platform-settings').forEach(s => {
+                s.classList.add('hidden');
+                s.classList.remove('flex');
+            });
+            
+            const specificSettings = document.getElementById('settings-' + platform);
+            if(specificSettings) {
+                specificSettings.classList.remove('hidden');
+                specificSettings.classList.add('flex');
+            }
+        }
 
-// POST
-text.oninput=()=>preview.innerText=text.value
-function addEmoji(e){text.value+=e}
-function insertTags(){text.value+='#lumina #ai'}
+        document.getElementById('postContent').addEventListener('input', function(e) {
+            document.getElementById('previewText').innerText = e.target.value || 'Здесь появится текст вашей публикации...';
+        });
 
-async function savePost(){
-await db.from('posts').insert({
-content:text.value,
-platform:platform.value
-})
-alert('ok')
-}
+        function toggleDropdown(id) { document.getElementById(id).classList.toggle('show'); }
+        
+        function insertHashtags(tags) {
+            const textarea = document.getElementById('postContent');
+            textarea.value += (textarea.value.length > 0 ? '\n\n' : '') + tags;
+            textarea.dispatchEvent(new Event('input')); 
+            document.getElementById('hashMenu').classList.remove('show');
+        }
 
-// CALENDAR
-function setCalendar(mode){
-calendar.className = mode==='month' ? 'calendar-month flex-1' : 'calendar-week'
-renderCalendar(mode)
-}
+        window.onclick = function(event) {
+            if (!event.target.closest('.relative')) {
+                document.querySelectorAll('.dropdown-content').forEach(d => d.classList.remove('show'));
+            }
+        }
 
-function renderCalendar(mode='month'){
-calendar.innerHTML=''
-if(mode==='month'){
-for(let i=1;i<=35;i++){
-let d=document.createElement('div')
-d.className='cell'
-d.innerText=i
-calendar.appendChild(d)
-}
-}else{
-for(let h=0;h<24;h++){
-let t=document.createElement('div')
-t.innerText=h+':00'
-calendar.appendChild(t)
-for(let d=0;d<7;d++){
-let c=document.createElement('div')
-c.className='cell'
-calendar.appendChild(c)
-}
-}
-}
-}
-
-renderCalendar()
-</script>
-
+        // Старт
+        renderMonth();
+        setPlatform('tiktok');
+    </script>
 </body>
 </html>
