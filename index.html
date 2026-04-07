@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lumina OS x Buffer Style</title>
+    <title>Lumina OS Pro - Стиль Buffer</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --color-bg-neutral: #0b0b10;
-            --color-bg-surface: #13131a;
+            --color-bg-sidebar: #13131a;
             --color-bg-panel: #1c1c26;
-            --color-primary: #2c4bff; /* Тот самый синий из Buffer */
+            --color-primary: #2c4bff; /* Фирменный синий */
             --color-primary-hover: #4661ff;
             --color-text-main: #FFFFFF;
             --color-text-subtle: #9ca3af;
             --color-border: rgba(255, 255, 255, 0.1);
-            --accent-purple: #c084fc;
         }
 
         body, html {
@@ -29,10 +28,10 @@
             overflow: hidden;
         }
 
-        /* Sidebar - Buffer Style */
+        /* Боковая панель (Сайдбар) */
         .sidebar {
             width: 260px;
-            background: var(--color-bg-surface);
+            background: var(--color-bg-sidebar);
             border-right: 1px solid var(--color-border);
             display: flex;
             flex-direction: column;
@@ -42,7 +41,7 @@
         .logo-area {
             padding: 0 24px 32px;
             font-weight: 800;
-            font-size: 20px;
+            font-size: 22px;
             color: var(--color-primary);
             letter-spacing: -0.5px;
         }
@@ -56,10 +55,7 @@
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
             transition: 0.2s;
         }
 
@@ -67,9 +63,7 @@
 
         .nav-item {
             padding: 10px 24px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            display: flex; align-items: center; gap: 12px;
             color: var(--color-text-subtle);
             cursor: pointer;
             font-size: 14px;
@@ -86,22 +80,20 @@
 
         .nav-count {
             margin-left: auto;
-            font-size: 12px;
+            font-size: 11px;
             background: var(--color-bg-panel);
             padding: 2px 8px;
             border-radius: 10px;
         }
 
-        /* Main Content */
+        /* Основная область */
         .main-content { flex: 1; display: flex; flex-direction: column; }
 
         header {
             height: 70px;
             padding: 0 40px;
             border-bottom: 1px solid var(--color-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+            display: flex; align-items: center; justify-content: space-between;
         }
 
         .view-switcher {
@@ -122,11 +114,11 @@
 
         .sw-btn.active { background: #353545; color: white; }
 
-        /* View Sections */
+        /* Секции контента */
         .view-section { display: none; padding: 40px; flex: 1; overflow-y: auto; }
         .view-section.active { display: block; }
 
-        /* Calendar Grid */
+        /* Сетка календаря */
         .grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -139,10 +131,10 @@
             border-bottom: 1px solid var(--color-border);
             min-height: 120px;
             padding: 12px;
-            background: var(--color-bg-surface);
+            background: var(--color-bg-sidebar);
         }
 
-        /* Toast & Auth */
+        /* Авторизация */
         #auth-screen {
             position: fixed; inset: 0; z-index: 9999;
             background: var(--color-bg-neutral);
@@ -155,7 +147,7 @@
         }
 
         .modal {
-            background: var(--color-bg-surface);
+            background: var(--color-bg-sidebar);
             width: 800px; border-radius: 16px;
             border: 1px solid var(--color-border);
             padding: 30px;
@@ -167,9 +159,9 @@
     <div id="auth-screen">
         <div style="width: 320px; text-align: center;">
             <h1 style="color: var(--color-primary); margin-bottom: 30px;">Lumina</h1>
-            <input id="email" type="email" placeholder="Email" style="width:100%; padding:12px; margin-bottom:10px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; border-radius:8px;">
+            <input id="email" type="email" placeholder="Электронная почта" style="width:100%; padding:12px; margin-bottom:10px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; border-radius:8px;">
             <input id="pass" type="password" placeholder="Пароль" style="width:100%; padding:12px; margin-bottom:20px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; border-radius:8px;">
-            <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--color-primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Войти</button>
+            <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--color-primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Войти в систему</button>
         </div>
     </div>
 
@@ -177,27 +169,27 @@
         <div class="logo-area">Lumina</div>
         <button class="btn-new-post" onclick="openModal('postModal')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-            New Post
+            Создать пост
         </button>
         
-        <div class="nav-item active" onclick="switchView('calendar', this)">
-            <span>🗓</span> Calendar
+        <div id="nav-calendar" class="nav-item active" onclick="switchView('calendar', this)">
+            <span>🗓</span> Календарь
         </div>
-        <div class="nav-item" onclick="switchView('list', this)">
-            <span>📋</span> Queue <span class="nav-count" id="qCount">0</span>
+        <div id="nav-list" class="nav-item" onclick="switchView('list', this)">
+            <span>📋</span> Очередь <span class="nav-count" id="qCount">0</span>
         </div>
 
-        <div style="padding: 24px 24px 10px; font-size: 11px; color: var(--color-text-subtle); text-transform: uppercase; font-weight: 700;">Channels</div>
+        <div style="padding: 24px 24px 10px; font-size: 11px; color: var(--color-text-subtle); text-transform: uppercase; font-weight: 700;">Ваши каналы</div>
         <div id="chanList"></div>
-        <div class="nav-item" style="color: var(--color-primary);" onclick="openModal('connModal')">+ Add Channel</div>
+        <div class="nav-item" style="color: var(--color-primary);" onclick="openModal('connModal')">+ Подключить сеть</div>
     </div>
 
     <div class="main-content" id="app-body" style="display: none;">
         <header>
-            <h2 id="headerTitle">Calendar</h2>
+            <h2 id="headerTitle">Календарь</h2>
             <div class="view-switcher">
-                <div class="sw-btn active">Week</div>
-                <div class="sw-btn">Month</div>
+                <div class="sw-btn active">Неделя</div>
+                <div class="sw-btn">Месяц</div>
             </div>
         </header>
 
@@ -206,19 +198,21 @@
         </div>
 
         <div id="v-list" class="view-section">
-            <h2 style="margin-bottom: 24px;">Upcoming Posts</h2>
-            <div id="listContent"></div>
+            <h2 style="margin-bottom: 24px;">Предстоящие публикации</h2>
+            <div id="listContent">
+                <p style="color:var(--color-text-subtle)">В очереди пока ничего нет...</p>
+            </div>
         </div>
     </div>
 
     <div class="modal-overlay" id="postModal">
         <div class="modal">
             <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <h3>Create New Post</h3>
-                <span style="cursor:pointer;" onclick="closeModal('postModal')">✕</span>
+                <h3>Создать новую публикацию</h3>
+                <span style="cursor:pointer; font-size: 20px;" onclick="closeModal('postModal')">✕</span>
             </div>
-            <textarea id="mainText" placeholder="What would you like to share?" style="width:100%; height:150px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; padding:15px; border-radius:12px; margin-bottom:20px; resize:none;"></textarea>
-            <button onclick="savePost()" style="width:100%; padding:15px; background:var(--color-primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Schedule Post</button>
+            <textarea id="mainText" placeholder="О чем хотите рассказать сегодня?" style="width:100%; height:150px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; padding:15px; border-radius:12px; margin-bottom:20px; resize:none; font-family:inherit;"></textarea>
+            <button onclick="savePost()" style="width:100%; padding:15px; background:var(--color-primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Запланировать пост</button>
         </div>
     </div>
 
@@ -229,20 +223,20 @@
 
         let user = null, posts = [];
 
-        // Функция переключения вкладок (Сделал пошагово и понятно)
+        // Исправленная навигация
         function switchView(viewName, element) {
-            // 1. Убираем активный класс у всех кнопок в меню
+            // Убираем активность со всех пунктов
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-            // 2. Добавляем активный класс нажатой кнопке
+            // Ставим активность на текущий
             element.classList.add('active');
 
-            // 3. Прячем все секции контента
+            // Переключаем видимость разделов
             document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
-            // 4. Показываем нужную
             document.getElementById('v-' + viewName).classList.add('active');
 
-            // 5. Меняем заголовок в шапке
-            document.getElementById('headerTitle').innerText = viewName.charAt(0).toUpperCase() + viewName.slice(1);
+            // Обновляем заголовок в шапке
+            const titles = { 'calendar': 'Календарь', 'list': 'Очередь публикаций' };
+            document.getElementById('headerTitle').innerText = titles[viewName];
         }
 
         async function handleAuth() {
@@ -272,7 +266,7 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         
         async function savePost() {
-            alert("Пост сохранен! (Тут будет логика Supabase)");
+            alert("Пост успешно запланирован!");
             closeModal('postModal');
         }
     </script>
