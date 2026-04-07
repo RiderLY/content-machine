@@ -87,7 +87,13 @@
         }
 
         /* Основная область */
-        .main-content { flex: 1; display: flex; flex-direction: column; }
+       .main-content { 
+            flex-grow: 1; /* Это заставит блок растянуться на всю ширину */
+            display: flex; 
+            flex-direction: column; 
+            min-width: 0; /* Важно, чтобы контент не вылезал */
+        }
+
 
         header {
             height: 70px;
@@ -115,8 +121,15 @@
         .sw-btn.active { background: #353545; color: white; }
 
         /* Секции контента */
-        .view-section { display: none; padding: 40px; flex: 1; overflow-y: auto; }
-        .view-section.active { display: block; }
+        .view-section { 
+            display: none; 
+            padding: 40px; 
+            width: 100%; /* Растягиваем на 100% ширины родителя */
+            height: 100%; 
+            overflow-y: auto; 
+        }
+        .view-section.active { display: flex; flex-direction: column; }
+
 
        /* Сетка календаря */
         .grid {
@@ -124,10 +137,11 @@
             grid-template-columns: repeat(7, 1fr);
             grid-auto-rows: 1fr;
             height: calc(100vh - 110px);
+            width: 100%; /* Растягиваем саму сетку */
             border-top: 1px solid var(--color-border);
             border-left: 1px solid var(--color-border);
-            width: 100%;
         }
+
 
         .cell {
             border-right: 1px solid var(--color-border);
