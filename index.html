@@ -213,67 +213,38 @@
     </style>
 </head>
 <body>
-
-    <div id="auth-screen">
-        <div style="width: 320px; text-align: center;">
-            <h1 style="color: var(--color-primary); margin-bottom: 30px;">Lumina</h1>
-            <input id="email" type="email" placeholder="Электронная почта" style="width:100%; padding:12px; margin-bottom:10px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; border-radius:8px;">
-            <input id="pass" type="password" placeholder="Пароль" style="width:100%; padding:12px; margin-bottom:20px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; border-radius:8px;">
-            <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--color-primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Войти в систему</button>
-        </div>
-    </div>
-
     <div class="sidebar">
         <div class="logo-area">Lumina</div>
         <button class="btn-new-post" onclick="openModal('postModal')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             Создать пост
         </button>
-        
-        <div id="nav-calendar" class="nav-item active" onclick="switchView('calendar', this)">
+        <div class="nav-item active" onclick="switchView('calendar', this)">
             <span>🗓</span> Календарь
         </div>
-        <div id="nav-list" class="nav-item" onclick="switchView('list', this)">
-            <span>📋</span> Очередь <span class="nav-count" id="qCount">0</span>
+        <div class="nav-item" onclick="switchView('list', this)">
+            <span>📋</span> Очередь
+        </div>
         </div>
 
-        <div style="padding: 24px 24px 10px; font-size: 11px; color: var(--color-text-subtle); text-transform: uppercase; font-weight: 700;">Ваши каналы</div>
-        <div id="chanList"></div>
-        <div class="nav-item" style="color: var(--color-primary);" onclick="openModal('connModal')">+ Подключить сеть</div>
-    </div>
-
-    <div class="main-content" id="app-body" style="display: none;">
+    <div class="main-content" id="app-body">
         <header>
-    <h2 id="headerTitle">Календарь</h2>
-    <div class="view-switcher">
-        <div id="btn-mode-week" class="sw-btn active" onclick="switchCalendarMode('week')">Неделя</div>
-        <div id="btn-mode-month" class="sw-btn" onclick="switchCalendarMode('month')">Месяц</div>
-    </div>
-</header>
-
+            <h2 id="headerTitle">Календарь</h2>
+            <div class="view-switcher">
+                <div id="btn-mode-week" class="sw-btn" onclick="switchCalendarMode('week')">Неделя</div>
+                <div id="btn-mode-month" class="sw-btn active" onclick="switchCalendarMode('month')">Месяц</div>
+            </div>
+        </header>
 
         <div id="v-calendar" class="view-section active">
-            <div class="grid" id="calendarGrid"></div>
+            <div class="grid" id="calendarGrid">
+                </div>
         </div>
 
         <div id="v-list" class="view-section">
-            <h2 style="margin-bottom: 24px;">Предстоящие публикации</h2>
-            <div id="listContent">
-                <p style="color:var(--color-text-subtle)">В очереди пока ничего нет...</p>
-            </div>
+            <div id="listContent"></div>
         </div>
     </div>
 
-    <div class="modal-overlay" id="postModal">
-        <div class="modal">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <h3>Создать новую публикацию</h3>
-                <span style="cursor:pointer; font-size: 20px;" onclick="closeModal('postModal')">✕</span>
-            </div>
-            <textarea id="mainText" placeholder="О чем хотите рассказать сегодня?" style="width:100%; height:150px; background:var(--color-bg-panel); border:1px solid var(--color-border); color:white; padding:15px; border-radius:12px; margin-bottom:20px; resize:none; font-family:inherit;"></textarea>
-            <button onclick="savePost()" style="width:100%; padding:15px; background:var(--color-primary); color:white; border:none; border-radius:8px; font-weight:700; cursor:pointer;">Запланировать пост</button>
-        </div>
-    </div>
 
     <script>
         const SUPABASE_URL = "https://ltrglnjbsyoelkagqbbh.supabase.co"; 
