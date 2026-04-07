@@ -188,13 +188,17 @@
     <main class="flex-1 flex flex-col min-w-0 bg-dark relative">
         
         <header class="h-[70px] flex-shrink-0 border-b border-white/10 flex items-center justify-between px-8 bg-dark z-10">
-            <h1 id="mainTitle" class="text-xl font-bold">Календарь</h1>
+            <div class="flex items-center gap-4">
+                <h1 id="mainTitle" class="text-xl font-bold">Календарь</h1>
+                <span id="currentMonthYear" class="text-lg font-medium text-neonBlue"></span>
+            </div>
             
             <div id="calendarControls" class="flex gap-1 bg-panel p-1 rounded-lg border border-white/5">
                 <button id="btn-week" class="sw-btn" onclick="switchCalendarMode('week')">Неделя</button>
                 <button id="btn-month" class="sw-btn active" onclick="switchCalendarMode('month')">Месяц</button>
             </div>
         </header>
+
 
         <section id="view-calendar" class="flex-1 flex flex-col min-h-0 w-full overflow-y-auto">
             <div class="grid grid-cols-7 border-b border-white/10 text-center py-3 text-xs font-semibold text-gray-500 bg-card">
@@ -383,12 +387,15 @@
         }
 
         function renderMonth() {
+            updateMonthYearDisplay(); // <-- ВОТ ЭТА НОВАЯ СТРОЧКА
+            
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
             for(let i=1; i<=35; i++) {
                 grid.innerHTML += `<div class="cell flex flex-col"><span class="text-xs text-gray-500 font-medium">${i > 31 ? i-31 : i}</span></div>`;
             }
         }
+
 
         function renderWeek() {
             const grid = document.getElementById('calendarGrid');
@@ -458,6 +465,22 @@
         // Старт
         renderMonth();
         setPlatform('tiktok');
+// -- ОПРЕДЕЛЕНИЕ МЕСЯЦА И ГОДА --
+        function updateMonthYearDisplay() {
+            const months = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+            const now = new Date(); // Берет текущую дату с твоего компьютера
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+            
+            const displayEl = document.getElementById('currentMonthYear');
+            if (displayEl) {
+                displayEl.innerText = `${monthName} ${year}`;
+            }
+        }
+
     </script>
 </body>
 </html>
+
+
+
