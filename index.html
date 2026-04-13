@@ -1314,14 +1314,38 @@
             hideDropdown("hashMenu");
         }
 
-        function loadHashtagGroups() {
-            const stored = localStorage.getItem(getScopedStorageKey("hashtag_groups"));
-            state.hashtagGroups = stored ? safeJsonParse(stored, []) : [
-                { name: "Технологии", tags: "#tech #lumina #ai" },
-                { name: "Лайфстайл", tags: "#vlog #life #day" }
-            ];
-            renderHashtagGroups();
+        async function loadHashtagGroups() {
+    const stored = localStorage.getItem(getScopedStorageKey("hashtag_groups"));
+    state.hashtagGroups = stored ? safeJsonParse(stored, []) : [
+        { id: "local-tech", name: "Технологии", tags: "#tech #lumina #ai" },
+        { id: "local-life", name: "Лайфстайл", tags: "#vlog #life #day" }
+    ];
+
+    if (state.supabase && state.authUserId) {
+        const { data, error } = await state.supabase
+            .from("hashtag_groups")
+            .select("*")
+            .eq("user_id", state.authUserId)
+            .order("created_at", { ascending: false });
+
+        if (!error && Array.isArray(data)) {
+            state.hashtagGroups = data.map((item) => ({
+                id: item.id,
+                name: item.name || "",
+                tags: item.tags || ""
+            }));
+
+            localStorage.setItem(
+                getScopedStorageKey("hashtag_groups"),
+                JSON.stringify(state.hashtagGroups)
+            );
         }
+    }
+
+    renderHashtagGroups();
+}
+
+
 
         function renderHashtagGroups() {
             const container = document.getElementById("hashtagGroupsList");
@@ -1343,27 +1367,81 @@
             `).join("");
         }
 
-        function saveHashtagGroup() {
-            const name = document.getElementById("newHashtagGroupName").value.trim();
-            const tags = document.getElementById("newHashtagGroupTags").value.trim();
-            if (!name || !tags) return;
+       async function saveHashtagGroup() {
+    const name = document.getElementById("newHashtagGroupName").value.trim();
+    const tags = document.getElementById("newHashtagGroupTags").value.trim();
 
-            state.hashtagGroups.unshift({ name, tags });
-            localStorage.setItem(getScopedStorageKey("hashtag_groups"), JSON.stringify(state.hashtagGroups));
+    if (!name || !tags) return;
 
-            document.getElementById("newHashtagGroupName").value = "";
-            document.getElementById("newHashtagGroupTags").value = "";
+    const localGroup = {
+        id: `local-${Date.now()}`,
+        name,
+        tags
+    };
 
-            renderHashtagGroups();
-            document.getElementById("hashMenu").classList.add("show");
+    if (state.supabase && state.authUserId) {
+        const { data, error } = await state.supabase
+            .from("hashtag_groups")
+            .insert({
+                user_id: state.authUserId,
+                name,
+                tags
+            })
+            .select()
+            .single();
+
+        if (!error && data) {
+            state.hashtagGroups.unshift({
+                id: data.id,
+                name: data.name || "",
+                tags: data.tags || ""
+            });
+        } else {
+            state.hashtagGroups.unshift(localGroup);
         }
+    } else {
+        state.hashtagGroups.unshift(localGroup);
+    }
 
-        function deleteHashtagGroup(index) {
-            if (!window.confirm("Удалить эту группу хештегов?")) return;
-            state.hashtagGroups.splice(index, 1);
-            localStorage.setItem(getScopedStorageKey("hashtag_groups"), JSON.stringify(state.hashtagGroups));
-            renderHashtagGroups();
-        }
+    localStorage.setItem(
+        getScopedStorageKey("hashtag_groups"),
+        JSON.stringify(state.hashtagGroups)
+    );
+
+    document.getElementById("newHashtagGroupName").value = "";
+    document.getElementById("newHashtagGroupTags").value = "";
+
+    renderHashtagGroups();
+    document.getElementById("hashMenu").classList.add("show");
+}
+
+
+
+        async function deleteHashtagGroup(index) {
+    if (!window.confirm("Удалить эту группу хештегов?")) return;
+
+    const group = state.hashtagGroups[index];
+    if (!group) return;
+
+    if (state.supabase && state.authUserId && group.id && !String(group.id).startsWith("local-")) {
+        await state.supabase
+            .from("hashtag_groups")
+            .delete()
+            .eq("id", group.id)
+            .eq("user_id", state.authUserId);
+    }
+
+    state.hashtagGroups.splice(index, 1);
+
+    localStorage.setItem(
+        getScopedStorageKey("hashtag_groups"),
+        JSON.stringify(state.hashtagGroups)
+    );
+
+    renderHashtagGroups();
+}
+
+
 
         function parseIdeaNotes(text) {
             const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
@@ -1599,18 +1677,25 @@
         }
 
         async function bootstrapApp() {
-            renderChannels();
-            loadHashtagGroups();
-            loadIdeaBoards();
-            syncPlatformButtons();
-            updateAuthUi();
-            await initializeSupabase();
-            await loadPosts();
-            renderIdeaBoards();
-            renderCalendar();
-        }
+    renderChannels();
+    syncPlatformButtons();
+    updateAuthUi();
+
+    await initializeSupabase();
+    await loadHashtagGroups();
+    loadIdeaBoards();
+    await loadPosts();
+
+    renderIdeaBoards();
+    renderCalendar();
+}
+
+
 
         bootstrapApp();
     </script>
 </body>
 </html>
+
+
+
