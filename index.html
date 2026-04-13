@@ -1368,52 +1368,62 @@
         }
 
        async function saveHashtagGroup() {
-    const name = document.getElementById("newHashtagGroupName").value.trim();
-    const tags = document.getElementById("newHashtagGroupTags").value.trim();
+    const nameInput = document.getElementById("newHashtagGroupName");
+    const tagsInput = document.getElementById("newHashtagGroupTags");
+    const saveButton = document.querySelector("#hashMenu .ghost-btn.w-full");
+
+    const name = nameInput.value.trim();
+    const tags = tagsInput.value.trim();
 
     if (!name || !tags) return;
 
-    const localGroup = {
-        id: `local-${Date.now()}`,
-        name,
-        tags
-    };
+    if (saveButton) saveButton.disabled = true;
 
-    if (state.supabase && state.authUserId) {
-        const { data, error } = await state.supabase
-            .from("hashtag_groups")
-            .insert({
-                user_id: state.authUserId,
+    try {
+        if (state.supabase && state.authUserId) {
+            const { error } = await state.supabase
+                .from("hashtag_groups")
+                .insert({
+                    user_id: state.authUserId,
+                    name,
+                    tags
+                });
+
+            if (error) {
+                console.error("Ошибка сохранения hashtag group:", error);
+                alert("Не удалось сохранить группу хештегов.");
+                return;
+            }
+
+            nameInput.value = "";
+            tagsInput.value = "";
+
+            await loadHashtagGroups();
+        } else {
+            state.hashtagGroups.unshift({
+                id: `local-${Date.now()}`,
                 name,
                 tags
-            })
-            .select()
-            .single();
-
-        if (!error && data) {
-            state.hashtagGroups.unshift({
-                id: data.id,
-                name: data.name || "",
-                tags: data.tags || ""
             });
-        } else {
-            state.hashtagGroups.unshift(localGroup);
+
+            localStorage.setItem(
+                getScopedStorageKey("hashtag_groups"),
+                JSON.stringify(state.hashtagGroups)
+            );
+
+            nameInput.value = "";
+            tagsInput.value = "";
+
+            renderHashtagGroups();
         }
-    } else {
-        state.hashtagGroups.unshift(localGroup);
+
+        document.getElementById("hashMenu").classList.add("show");
+    } finally {
+        if (saveButton) saveButton.disabled = false;
     }
-
-    localStorage.setItem(
-        getScopedStorageKey("hashtag_groups"),
-        JSON.stringify(state.hashtagGroups)
-    );
-
-    document.getElementById("newHashtagGroupName").value = "";
-    document.getElementById("newHashtagGroupTags").value = "";
-
-    renderHashtagGroups();
-    document.getElementById("hashMenu").classList.add("show");
 }
+
+
 
 
 
