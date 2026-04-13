@@ -1,31 +1,1616 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lumina OS</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@phosphor-icons/web"></script>
-<script>tailwind.config={theme:{extend:{colors:{dark:'#0b0b10',card:'#13131a',panel:'#1c1c26',primary:'#2c4bff',neonBlue:'#38bdf8',neonPurple:'#c084fc'},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
-<style>
-html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0b0b10;color:#fff;font-family:Inter,sans-serif}::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:#2c4bff;border-radius:999px}.neon-text{background:linear-gradient(90deg,#38bdf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent}.modal{position:fixed;inset:0;display:none;justify-content:center;align-items:center;background:rgba(0,0,0,.8);backdrop-filter:blur(5px);z-index:1000}.nav.active{background:rgba(44,75,255,.15);border-right:3px solid #2c4bff;color:#fff}.cell{position:relative;border-right:1px solid rgba(255,255,255,.08);border-bottom:1px solid rgba(255,255,255,.08);background:#13131a;padding:12px;min-height:120px}.cell:hover{background:rgba(255,255,255,.03)}.plus{position:absolute;top:12px;right:12px;width:28px;height:28px;border-radius:999px;border:1px solid rgba(56,189,248,.25);background:rgba(44,75,255,.18);color:#dbeafe}.post-chip{margin-top:8px;padding:8px 10px;border-radius:12px;background:rgba(44,75,255,.12);border:1px solid rgba(56,189,248,.16);font-size:11px;color:#dbeafe;cursor:pointer}.queue-item{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:10px}.ghost-btn{border:1px solid rgba(255,255,255,.1);background:transparent;color:#cbd5e1;border-radius:12px;padding:9px 12px}.chip{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.08);color:#9ca3af;cursor:pointer}.chip.active{color:#fff;background:rgba(44,75,255,.16);border-color:rgba(56,189,248,.3)}.card{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03);border-radius:16px;padding:14px}.drop{display:none}.drop.show{display:flex}
-</style>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lumina OS - Управление контентом</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: "#0b0b10",
+                        card: "#13131a",
+                        panel: "#1c1c26",
+                        primary: "#2c4bff",
+                        neonPurple: "#c084fc",
+                        neonBlue: "#38bdf8"
+                    },
+                    fontFamily: {
+                        sans: ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0b0b10;
+            color: #fff;
+            font-family: Inter, sans-serif;
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #2c4bff; border-radius: 999px; }
+
+        .neon-text {
+            background: linear-gradient(90deg, #38bdf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .neon-border {
+            position: relative;
+            background: #13131a;
+            background-clip: padding-box;
+            border: 1px solid transparent;
+        }
+
+        .neon-border::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #38bdf8, #c084fc);
+            z-index: -1;
+        }
+
+        .nav-item { transition: all 0.2s ease; }
+
+        .nav-item.active {
+            background: rgba(44, 75, 255, 0.15);
+            border-right: 3px solid #2c4bff;
+            box-shadow: inset 0 0 20px rgba(44, 75, 255, 0.1);
+            color: #fff;
+        }
+
+        .nav-item:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.03);
+            color: #fff;
+        }
+
+        .calendar-shell {
+            display: grid;
+            grid-template-columns: minmax(0, 1.7fr) 360px;
+            height: 100%;
+            min-height: 0;
+        }
+
+        .calendar-main {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .calendar-grid-month {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            grid-auto-rows: minmax(120px, 1fr);
+            flex: 1;
+            width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            border-left: 1px solid rgba(255,255,255,0.08);
+            overflow-y: auto;
+        }
+
+        .calendar-grid-week {
+            display: grid;
+            grid-template-columns: 72px repeat(7, minmax(0, 1fr));
+            grid-auto-rows: 72px;
+            width: 100%;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            overflow-y: auto;
+        }
+
+        .cell {
+            position: relative;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 12px;
+            min-height: 0;
+            background: #13131a;
+            transition: background 0.2s;
+            overflow: hidden;
+        }
+
+        .cell:hover { background: rgba(255,255,255,0.02); }
+
+        .calendar-date {
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+        }
+
+        .calendar-date.today {
+            background: linear-gradient(135deg, #2c4bff, #38bdf8);
+            color: #fff;
+        }
+
+        .calendar-post {
+            margin-top: 8px;
+            border-radius: 10px;
+            padding: 8px 10px;
+            font-size: 11px;
+            line-height: 1.4;
+            background: rgba(44, 75, 255, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.16);
+            color: #dbeafe;
+            cursor: pointer;
+        }
+
+        .calendar-add-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 28px;
+            height: 28px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            background: rgba(44, 75, 255, 0.16);
+            color: #dbeafe;
+            transition: 0.2s;
+        }
+
+        .calendar-add-btn:hover {
+            background: rgba(44, 75, 255, 0.3);
+            color: #fff;
+        }
+
+        .week-slot {
+            position: relative;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: #13131a;
+            transition: background 0.2s;
+            overflow: hidden;
+        }
+
+        .week-slot:hover { background: rgba(255,255,255,0.02); }
+
+        .slot-add-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            background: rgba(44, 75, 255, 0.16);
+            color: #dbeafe;
+            opacity: 0;
+            transition: 0.2s;
+        }
+
+        .week-slot:hover .slot-add-btn,
+        .week-slot.has-event .slot-add-btn {
+            opacity: 1;
+        }
+
+        .day-head-month {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+
+        .day-head-week {
+            display: grid;
+            grid-template-columns: 72px repeat(7, minmax(0, 1fr));
+        }
+
+        .day-head-cell {
+            padding: 12px 10px;
+            border-right: 1px solid rgba(255,255,255,0.08);
+            text-align: center;
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .queue-panel {
+            border-left: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(180deg, rgba(19,19,26,0.98), rgba(11,11,16,0.98));
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .queue-item {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .queue-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(44, 75, 255, 0.14);
+            color: #dbeafe;
+            font-size: 11px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .panel-card,
+        .settings-card,
+        .tag-group-card,
+        .idea-note {
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
+            border-radius: 16px;
+            padding: 14px;
+        }
+
+        .platform-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #9ca3af;
+            transition: 0.2s ease;
+            cursor: pointer;
+        }
+
+        .platform-chip.active {
+            border-color: rgba(56, 189, 248, 0.35);
+            background: rgba(44, 75, 255, 0.14);
+            color: #e5f2ff;
+            box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.12);
+        }
+
+        .ghost-btn {
+            border: 1px solid rgba(255,255,255,0.1);
+            background: transparent;
+            color: #cbd5e1;
+            border-radius: 12px;
+            padding: 8px 12px;
+            transition: 0.2s ease;
+        }
+
+        .ghost-btn:hover {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+        }
+
+        .dropdown-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.2s;
+        }
+
+        .dropdown-content.show {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .sw-btn {
+            padding: 6px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #9ca3af;
+            transition: 0.2s;
+        }
+
+        .sw-btn.active {
+            background: #353545;
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .emoji-btn {
+            height: 38px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .upload-zone.dragover {
+            border-color: rgba(56, 189, 248, 0.4);
+            background: rgba(44, 75, 255, 0.08);
+        }
+
+        @media (max-width: 1100px) {
+            .calendar-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .queue-panel {
+                border-left: none;
+                border-top: 1px solid rgba(255,255,255,0.08);
+            }
+        }
+    </style>
 </head>
 <body class="flex text-sm">
-<aside class="w-[280px] flex-shrink-0 bg-card border-r border-white/10 flex flex-col">
-<div class="px-6 py-8 text-2xl font-extrabold neon-text flex items-center gap-2"><i class="ph-fill ph-sparkle"></i>Lumina</div>
-<div class="px-5 mb-6 relative"><button onclick="toggleMenu()" class="w-full border border-neonBlue/40 rounded-xl py-3 font-semibold">Создать</button><div id="createMenu" class="drop absolute top-full left-5 right-5 mt-2 bg-panel border border-white/10 rounded-xl shadow-2xl overflow-hidden flex-col z-50"><button onclick="openComposer()" class="px-4 py-3 text-left hover:bg-white/5">Быстрый пост</button><button onclick="openIdeas()" class="px-4 py-3 text-left hover:bg-white/5">Идеи</button><button onclick="openAuth()" class="px-4 py-3 text-left hover:bg-white/5">Вход</button></div></div>
-<nav class="flex-1 overflow-y-auto"><div class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4">Управление</div><div class="nav active px-6 py-3 cursor-pointer text-gray-400 flex items-center gap-3"><i class="ph ph-calendar-blank"></i>Календарь</div><div class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-8">Каналы</div><div id="channelsList" class="px-3 text-xs text-gray-500">Пока нет подключенных каналов.</div></nav>
-<div class="p-5 border-t border-white/10 flex flex-col gap-3"><div class="card"><div class="text-[11px] uppercase tracking-[.22em] text-gray-500 mb-2">Аккаунт</div><div id="authStatus">Гостевой режим</div><div id="authHint" class="text-xs text-gray-500 mt-1">Без входа данные хранятся локально.</div></div><div class="flex gap-2"><button onclick="openAuth()" id="authBtn" class="flex-1 border border-neonBlue/40 rounded-xl py-2.5 font-semibold">Войти</button><button onclick="logoutUser()" id="logoutBtn" class="flex-1 border border-white/10 rounded-xl py-2.5 hidden">Выйти</button></div></div>
-</aside>
-<main class="flex-1 flex flex-col min-w-0 bg-dark"><header class="h-[72px] border-b border-white/10 flex items-center justify-between px-8"><div class="flex items-center gap-4"><h1 class="text-2xl font-bold">Календарь</h1><span id="monthLabel" class="text-lg text-neonBlue"></span></div></header><section class="flex-1 min-h-0 grid grid-cols-[minmax(0,1fr)_340px]"><div class="flex flex-col min-h-0"><div class="grid grid-cols-7 bg-card border-b border-white/10 text-center text-xs font-bold text-gray-500"><div class="py-3">Пн</div><div class="py-3">Вт</div><div class="py-3">Ср</div><div class="py-3">Чт</div><div class="py-3">Пт</div><div class="py-3">Сб</div><div class="py-3">Вс</div></div><div id="calendar" class="grid grid-cols-7 auto-rows-fr flex-1 min-h-0 overflow-y-auto border-t border-white/10 border-l border-white/10"></div></div><aside class="border-l border-white/10 p-6 flex flex-col gap-4 overflow-hidden"><div class="flex items-center justify-between"><div><div class="text-xs uppercase tracking-[.22em] text-gray-500 mb-2">Очередь</div><div class="text-lg font-bold">Запланировано</div></div><div id="queueCount" class="text-xs px-3 py-2 rounded-full bg-primary/15 border border-neonBlue/20">0</div></div><div id="queue" class="flex-1 overflow-y-auto flex flex-col gap-3"></div></aside></section></main>
-<div id="authModal" class="modal" onclick="dismiss(event,'authModal')"><div class="bg-card w-full max-w-md p-6 rounded-2xl border border-white/10 flex flex-col gap-4"><div class="flex items-center justify-between"><h3 class="text-xl font-bold">Безопасный вход</h3><button onclick="closeModal('authModal')"><i class="ph ph-x"></i></button></div><input id="authEmail" type="email" placeholder="you@example.com" class="w-full bg-dark border border-white/10 rounded-xl p-3 text-white"><button onclick="loginWithEmail()" class="border border-neonBlue/40 rounded-xl py-3 font-semibold">Отправить ссылку для входа</button><div id="authFeedback" class="text-xs text-gray-400">Вход по magic link от Supabase Auth.</div></div></div>
-<div id="ideasModal" class="modal" onclick="dismiss(event,'ideasModal')"><div class="bg-card w-full max-w-3xl p-6 rounded-2xl border border-white/10 flex flex-col gap-4"><div class="flex items-center justify-between"><h3 class="text-xl font-bold">Идеи</h3><button onclick="closeModal('ideasModal')"><i class="ph ph-x"></i></button></div><div class="card grid grid-cols-[240px_minmax(0,1fr)] gap-4"><input id="boardName" placeholder="Категория или образ" class="bg-dark border border-white/10 rounded-xl p-3 text-white"><textarea id="boardText" rows="5" placeholder="Идея&#10;- подпункт" class="bg-dark border border-white/10 rounded-xl p-3 text-white resize-none"></textarea><button onclick="saveBoard()" class="col-span-2 border border-neonBlue/40 rounded-xl py-3 font-semibold">Сохранить доску</button></div><div id="ideasList" class="grid gap-3 max-h-[55vh] overflow-y-auto"></div></div></div>
-<div id="composerModal" class="modal" onclick="dismiss(event,'composerModal')"><div class="bg-card w-[92%] max-w-[1120px] h-[86vh] rounded-2xl border border-white/10 flex overflow-hidden"><div class="flex-[1.4] border-r border-white/10 flex flex-col min-h-0"><div class="h-16 border-b border-white/10 flex items-center justify-between px-6"><h3 class="text-lg font-bold neon-text">Новая публикация</h3><button onclick="closeModal('composerModal')"><i class="ph ph-x"></i></button></div><div class="p-6 flex-1 overflow-y-auto flex flex-col gap-4"><div id="composerContext" class="card hidden text-sm text-gray-300"></div><div class="flex flex-wrap gap-3"><button data-platform="TikTok" onclick="togglePlatform('TikTok')" class="chip active">TikTok</button><button data-platform="Instagram" onclick="togglePlatform('Instagram')" class="chip">Instagram</button><button data-platform="YouTube" onclick="togglePlatform('YouTube')" class="chip">YouTube</button><button data-platform="Pinterest" onclick="togglePlatform('Pinterest')" class="chip">Pinterest</button></div><input id="postTitle" placeholder="Название публикации" class="bg-panel border border-white/10 rounded-xl p-3 text-white"><textarea id="postText" rows="6" placeholder="О чем хотите рассказать?" class="bg-panel border border-white/10 rounded-xl p-4 text-white resize-none"></textarea><div class="grid grid-cols-2 gap-4"><input id="postMedia" placeholder="Ссылка на медиа или имя файла" class="bg-panel border border-white/10 rounded-xl p-3 text-white"><input id="postDate" type="datetime-local" class="bg-panel border border-white/10 rounded-xl p-3 text-white"></div><input id="pinLink" placeholder="Pinterest ссылка (опционально)" class="bg-panel border border-white/10 rounded-xl p-3 text-white"><input id="mediaFile" type="file" accept="image/*,video/*" class="hidden"><button onclick="document.getElementById('mediaFile').click()" class="border border-white/10 rounded-xl py-3">Выбрать фото или видео</button><div id="pickedFile" class="text-xs text-gray-500"></div></div><div class="h-[72px] border-t border-white/10 flex items-center justify-between px-6"><button id="deletePost" onclick="deleteCurrentPost()" class="border border-white/10 rounded-xl px-4 py-2 hidden">Удалить</button><button onclick="savePost()" class="border border-neonBlue/40 rounded-xl px-8 py-2.5 font-bold">Запланировать</button></div></div><div class="flex-1 bg-black/60 p-8 flex items-center justify-center"><div class="w-[290px] h-[600px] rounded-[3rem] border-8 border-[#1a1a24] bg-black overflow-hidden flex flex-col"><div class="flex-1 p-4 pt-10"><div class="text-sm font-bold mb-4" id="previewPlatforms">TikTok</div><div class="w-full aspect-square bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-gray-600 mb-4 overflow-hidden"><img id="previewImage" class="hidden w-full h-full object-cover"><video id="previewVideo" class="hidden w-full h-full object-cover" controls></video><div id="previewPlaceholder"><i class="ph ph-image text-3xl"></i></div></div><div id="previewText" class="text-xs text-gray-300">Здесь появится текст вашей публикации...</div></div></div></div></div></div>
-<script>
-const supabaseConfig={url:'https://ltrglnjbsyoelkagqbbh.supabase.co',anonKey:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cmdsbmpic3lvZWxrYWdxYmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgyNDksImV4cCI6MjA5MDc1NDI0OX0.VhZiD9OVDfv3nlfYysBNXPsax4RkevErwWImMlqW9BM',table:'posts'};const state={currentDate:new Date(),posts:[],boards:[],selectedPlatforms:['TikTok'],editingPostId:null,localUserId:localStorage.getItem('lumina_user_id')||crypto.randomUUID(),authUserId:null,supabase:null};localStorage.setItem('lumina_user_id',state.localUserId);const months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];function userId(){return state.authUserId||state.localUserId}function key(name){return 'lumina_'+name+'_'+userId()}function dateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}function dtLocal(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')}function toggleMenu(){document.getElementById('createMenu').classList.toggle('show')}function openModal(id){document.getElementById(id).style.display='flex'}function closeModal(id){document.getElementById(id).style.display='none'}function dismiss(e,id){if(e.target.id===id)closeModal(id)}function updateAuthUi(){document.getElementById('authStatus').innerText=state.authUserId?(localStorage.getItem('lumina_auth_email')||'Аккаунт подключен'):'Гостевой режим';document.getElementById('authHint').innerText=state.authUserId?'Посты из Supabase привязаны к вашему аккаунту.':'Без входа данные хранятся локально.';document.getElementById('authBtn').innerText=state.authUserId?'Сменить email':'Войти';document.getElementById('logoutBtn').classList.toggle('hidden',!state.authUserId)}async function initSupabase(){if(!window.supabase)return;state.supabase=window.supabase.createClient(supabaseConfig.url,supabaseConfig.anonKey);const {data}=await state.supabase.auth.getSession();state.authUserId=data?.session?.user?.id||null;if(data?.session?.user?.email)localStorage.setItem('lumina_auth_email',data.session.user.email);updateAuthUi();state.supabase.auth.onAuthStateChange(async(_,session)=>{state.authUserId=session?.user?.id||null;if(session?.user?.email)localStorage.setItem('lumina_auth_email',session.user.email);else localStorage.removeItem('lumina_auth_email');updateAuthUi();await loadPosts()})}function openAuth(){document.getElementById('authEmail').value=localStorage.getItem('lumina_auth_email')||'';document.getElementById('authFeedback').innerText='Вход по magic link от Supabase Auth.';openModal('authModal')}async function loginWithEmail(){if(!state.supabase){document.getElementById('authFeedback').innerText='Supabase не инициализирован.';return}const email=document.getElementById('authEmail').value.trim();if(!email){document.getElementById('authFeedback').innerText='Введите email.';return}const {error}=await state.supabase.auth.signInWithOtp({email,options:{emailRedirectTo:window.location.href}});if(error){document.getElementById('authFeedback').innerText='Ошибка: '+error.message;return}localStorage.setItem('lumina_auth_email',email);document.getElementById('authFeedback').innerText='Ссылка отправлена на email.'}async function logoutUser(){if(state.supabase)await state.supabase.auth.signOut()}function renderCalendar(){document.getElementById('monthLabel').innerText=months[state.currentDate.getMonth()]+' '+state.currentDate.getFullYear();const cal=document.getElementById('calendar');cal.innerHTML='';const year=state.currentDate.getFullYear(),month=state.currentDate.getMonth(),first=new Date(year,month,1),days=new Date(year,month+1,0).getDate(),offset=(first.getDay()+6)%7;for(let i=0;i<42;i++){const cell=document.createElement('div');cell.className='cell';if(i<offset||i>=offset+days){cell.innerHTML='<span class="text-xs text-gray-700"> </span>';cal.appendChild(cell);continue}const day=i-offset+1;const date=new Date(year,month,day);const posts=state.posts.filter(p=>dateKey(new Date(p.post_date))===dateKey(date));cell.innerHTML=`<div class="text-xs ${dateKey(date)===dateKey(new Date())?'text-white':'text-gray-400'}">${day}</div><button class="plus" onclick="openComposerForDate('${dateKey(date)}')">+</button>${posts.map(p=>`<div class="post-chip" onclick="editPost('${p.id}')">${p.title||p.text||'Пост'}</div>`).join('')}`;cal.appendChild(cell)}renderQueue()}function renderQueue(){const list=document.getElementById('queue');const items=[...state.posts].filter(p=>p.status==='scheduled').sort((a,b)=>new Date(a.post_date)-new Date(b.post_date));document.getElementById('queueCount').innerText=String(items.length);list.innerHTML=items.length?items.map(p=>`<div class="queue-item"><div class="flex items-start justify-between gap-3"><div><div class="text-xs text-gray-500">${new Date(p.post_date).toLocaleString('ru-RU')}</div><div class="font-semibold mt-1">${p.title||'Без названия'}</div></div><div class="flex gap-2"><button onclick="editPost('${p.id}')" class="ghost-btn px-3 py-2">Открыть</button><button onclick="removePost('${p.id}')" class="ghost-btn px-3 py-2">Удалить</button></div></div><div class="text-sm text-gray-300">${p.text||'Без текста'}</div></div>`).join(''):'<div class="queue-item text-gray-400"><div class="font-semibold text-white">Очередь пока пустая</div><div>Нажми на плюс в календаре и создай первый пост.</div></div>'}async function loadPosts(){const stored=localStorage.getItem(key('posts'));state.posts=stored?JSON.parse(stored):[];if(state.supabase&&state.authUserId){const {data,error}=await state.supabase.from(supabaseConfig.table).select('*').eq('user_id',state.authUserId).order('post_date',{ascending:true});if(!error&&Array.isArray(data)){state.posts=data;localStorage.setItem(key('posts'),JSON.stringify(state.posts))}}renderCalendar()}function persistPosts(){localStorage.setItem(key('posts'),JSON.stringify(state.posts))}function openComposer(){toggleMenu();state.editingPostId=null;state.selectedPlatforms=['TikTok'];document.getElementById('deletePost').classList.add('hidden');document.getElementById('composerContext').classList.add('hidden');document.getElementById('postTitle').value='';document.getElementById('postText').value='';document.getElementById('postMedia').value='';document.getElementById('postDate').value='';document.getElementById('pinLink').value='';document.getElementById('pickedFile').innerText='';document.getElementById('previewText').innerText='Здесь появится текст вашей публикации...';document.getElementById('previewImage').classList.add('hidden');document.getElementById('previewVideo').classList.add('hidden');document.getElementById('previewPlaceholder').classList.remove('hidden');syncPlatforms();openModal('composerModal')}function openComposerForDate(d){openComposer();const date=new Date(d+'T10:00:00');document.getElementById('postDate').value=dtLocal(date);const box=document.getElementById('composerContext');box.classList.remove('hidden');box.innerText='Создание поста на '+date.toLocaleDateString('ru-RU')+' в 10:00'}function togglePlatform(name){const exists=state.selectedPlatforms.includes(name);if(exists&&state.selectedPlatforms.length===1)return;state.selectedPlatforms=exists?state.selectedPlatforms.filter(x=>x!==name):[...state.selectedPlatforms,name];syncPlatforms()}function syncPlatforms(){document.querySelectorAll('[data-platform]').forEach(b=>b.classList.toggle('active',state.selectedPlatforms.includes(b.dataset.platform)));document.getElementById('previewPlatforms').innerText=state.selectedPlatforms.join(', ')}document.getElementById('postText').addEventListener('input',e=>document.getElementById('previewText').innerText=e.target.value||'Здесь появится текст вашей публикации...');document.getElementById('mediaFile').addEventListener('change',e=>{const file=e.target.files[0];if(!file)return;document.getElementById('pickedFile').innerText=file.name;document.getElementById('postMedia').value=file.name;const url=URL.createObjectURL(file);const img=document.getElementById('previewImage'),video=document.getElementById('previewVideo'),ph=document.getElementById('previewPlaceholder');img.classList.add('hidden');video.classList.add('hidden');ph.classList.add('hidden');if(file.type.startsWith('image/')){img.src=url;img.classList.remove('hidden')}else if(file.type.startsWith('video/')){video.src=url;video.classList.remove('hidden')}else ph.classList.remove('hidden')});async function savePost(){const value=document.getElementById('postDate').value;if(!value)return;const payload={id:state.editingPostId,title:document.getElementById('postTitle').value.trim(),text:document.getElementById('postText').value.trim(),media_url:document.getElementById('postMedia').value.trim(),pinterest_link:document.getElementById('pinLink').value.trim(),platforms:state.selectedPlatforms,post_date:new Date(value).toISOString(),status:'scheduled'};if(!state.supabase||!state.authUserId){payload.id=payload.id||('local-'+Date.now());const index=state.posts.findIndex(p=>String(p.id)===String(payload.id));if(index>=0)state.posts[index]=payload;else state.posts.push(payload);persistPosts();renderCalendar();closeModal('composerModal');return}const db={user_id:state.authUserId,title:payload.title||null,text:payload.text||null,media_url:payload.media_url||null,pinterest_link:payload.pinterest_link||null,platforms:payload.platforms,post_date:payload.post_date,status:'scheduled'};let saved;if(payload.id&&!String(payload.id).startsWith('local-')){const {data}=await state.supabase.from(supabaseConfig.table).update(db).eq('id',payload.id).eq('user_id',state.authUserId).select().single();saved=data}else{const {data}=await state.supabase.from(supabaseConfig.table).insert(db).select().single();saved=data}if(saved){const index=state.posts.findIndex(p=>String(p.id)===String(saved.id));if(index>=0)state.posts[index]=saved;else state.posts.push(saved);persistPosts();renderCalendar();closeModal('composerModal')}}function editPost(id){const post=state.posts.find(p=>String(p.id)===String(id));if(!post)return;openComposer();state.editingPostId=post.id;state.selectedPlatforms=post.platforms?.length?post.platforms:['TikTok'];syncPlatforms();document.getElementById('deletePost').classList.remove('hidden');document.getElementById('postTitle').value=post.title||'';document.getElementById('postText').value=post.text||'';document.getElementById('postMedia').value=post.media_url||'';document.getElementById('postDate').value=dtLocal(new Date(post.post_date));document.getElementById('pinLink').value=post.pinterest_link||'';document.getElementById('previewText').innerText=post.text||'Здесь появится текст вашей публикации...';document.getElementById('composerContext').classList.remove('hidden');document.getElementById('composerContext').innerText='Редактирование поста на '+new Date(post.post_date).toLocaleDateString('ru-RU')}async function deleteCurrentPost(){if(!state.editingPostId||!confirm('Удалить этот пост?'))return;await removePost(state.editingPostId);closeModal('composerModal')}async function removePost(id){if(!confirm('Удалить этот пост из календаря и очереди?'))return;if(state.supabase&&state.authUserId&&!String(id).startsWith('local-'))await state.supabase.from(supabaseConfig.table).delete().eq('id',id).eq('user_id',state.authUserId);state.posts=state.posts.filter(p=>String(p.id)!==String(id));persistPosts();renderCalendar()}function loadBoards(){state.boards=JSON.parse(localStorage.getItem(key('boards'))||'[]')}function renderBoards(){const list=document.getElementById('ideasList');list.innerHTML=state.boards.length?state.boards.map((b,i)=>`<div class="card"><div class="flex items-center justify-between gap-3 mb-3"><div class="font-semibold">${b.name}</div><div class="flex gap-2"><button onclick="addIdea(${i})" class="ghost-btn px-3 py-2">Добавить идею</button><button onclick="deleteBoard(${i})" class="ghost-btn px-3 py-2">Удалить</button></div></div>${b.notes.map(n=>`<div class="card mb-2"><div class="font-semibold mb-2">${n.title}</div>${n.items.length?n.items.map(x=>`<div class="text-sm text-gray-300">- ${x}</div>`).join(''):'<div class="text-sm text-gray-500">Без подпунктов</div>'}</div>`).join('')}</div>`).join(''):'<div class="card text-gray-400">Создай первую доску с идеями.</div>'}function openIdeas(){toggleMenu();renderBoards();openModal('ideasModal')}function parseNotes(text){const lines=text.split('\n').map(x=>x.trim()).filter(Boolean),notes=[];let cur=null;lines.forEach(line=>{if(line.startsWith('-')){if(cur)cur.items.push(line.replace(/^-+\s*/,''));return}cur={title:line,items:[]};notes.push(cur)});return notes}function saveBoard(){const name=document.getElementById('boardName').value.trim(),text=document.getElementById('boardText').value.trim();if(!name||!text)return;const notes=parseNotes(text);if(!notes.length)return;state.boards.unshift({name,notes});localStorage.setItem(key('boards'),JSON.stringify(state.boards));document.getElementById('boardName').value='';document.getElementById('boardText').value='';renderBoards()}function deleteBoard(i){if(!confirm('Удалить эту доску?'))return;state.boards.splice(i,1);localStorage.setItem(key('boards'),JSON.stringify(state.boards));renderBoards()}function addIdea(i){const title=prompt('Название новой идеи:');if(!title)return;const sub=prompt('Подпункты через запятую или с новой строки:')||'';state.boards[i].notes.push({title:title.trim(),items:sub.split(/\n|,/).map(x=>x.trim()).filter(Boolean)});localStorage.setItem(key('boards'),JSON.stringify(state.boards));renderBoards()}bootstrap();async function bootstrap(){updateAuthUi();loadBoards();await initSupabase();await loadPosts();renderBoards();renderCalendar()}
-</script>
+
+    <aside class="w-[280px] flex-shrink-0 bg-card border-r border-white/10 flex flex-col z-20">
+        <div class="px-6 py-8 font-extrabold text-2xl tracking-tight neon-text flex items-center gap-2">
+            <i class="ph-fill ph-sparkle"></i> Lumina
+        </div>
+
+        <div class="px-5 mb-6 relative">
+            <button onclick="toggleDropdown('createMenu')" class="w-full neon-border rounded-xl py-3 flex items-center justify-center gap-2 font-semibold hover:brightness-110 transition-all">
+                <i class="ph-bold ph-plus"></i> Создать
+            </button>
+
+            <div id="createMenu" class="dropdown-content flex-col absolute top-full left-5 right-5 mt-2 bg-panel border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                <button onclick="createQuickPost()" class="px-4 py-3 text-left hover:bg-white/5 text-gray-300 hover:text-white">Быстрый пост</button>
+                <button onclick="openIdeasModal()" class="px-4 py-3 text-left hover:bg-white/5 text-gray-300 hover:text-white">Идеи</button>
+                <button onclick="openAiAssistantModal()" class="px-4 py-3 text-left hover:bg-white/5 text-gray-300 hover:text-white">ИИ-ассистент</button>
+            </div>
+        </div>
+
+        <nav class="flex-1 overflow-y-auto">
+            <div class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-4">Управление</div>
+
+            <div class="nav-item active flex items-center gap-3 px-6 py-3 cursor-pointer text-gray-400" onclick="switchMainView('calendar', this)">
+                <i class="ph ph-calendar-blank text-lg"></i> Календарь
+            </div>
+            <div class="nav-item flex items-center gap-3 px-6 py-3 cursor-pointer text-gray-400" onclick="switchMainView('community', this)">
+                <i class="ph ph-chats text-lg"></i> Сообщество
+            </div>
+
+            <div class="px-6 text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-2 mt-8 flex justify-between items-center">
+                Каналы
+                <i class="ph ph-plus cursor-pointer hover:text-white transition" onclick="openModal('connectModal')"></i>
+            </div>
+
+            <div id="channelsList" class="flex flex-col gap-1 mt-2 px-3"></div>
+        </nav>
+
+        <div class="p-5 border-t border-white/10 flex flex-col gap-3">
+            <div class="panel-card">
+                <div class="text-[11px] uppercase tracking-[0.22em] text-gray-500 mb-2">Аккаунт</div>
+                <div id="authStatusText" class="text-sm text-gray-200">Гостевой режим</div>
+                <div id="authStatusHint" class="text-xs text-gray-500 mt-1">Без входа данные хранятся локально в браузере.</div>
+            </div>
+            <div class="flex gap-2">
+                <button id="authOpenButton" onclick="openAuthModal()" class="neon-border flex-1 py-2.5 rounded-xl font-semibold">Войти</button>
+                <button id="authLogoutButton" onclick="logoutUser()" class="ghost-btn flex-1 hidden">Выйти</button>
+            </div>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col min-w-0 bg-dark relative">
+        <header class="h-[70px] flex-shrink-0 border-b border-white/10 flex items-center justify-between px-8 bg-dark z-10">
+            <div class="flex items-center gap-4">
+                <h1 id="mainTitle" class="text-xl font-bold">Календарь</h1>
+
+                <div id="dateNavigation" class="flex items-center gap-2">
+                    <button onclick="navigateCalendar(-1)" class="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 text-gray-400 hover:text-white transition"><i class="ph-bold ph-caret-left"></i></button>
+                    <span id="currentMonthYear" class="text-lg font-medium text-neonBlue min-w-[180px] text-center"></span>
+                    <button onclick="navigateCalendar(1)" class="w-8 h-8 flex items-center justify-center rounded hover:bg-white/10 text-gray-400 hover:text-white transition"><i class="ph-bold ph-caret-right"></i></button>
+                </div>
+            </div>
+
+            <div id="calendarControls" class="flex gap-1 bg-panel p-1 rounded-lg border border-white/5">
+                <button id="btn-week" class="sw-btn" onclick="switchCalendarMode('week')">Неделя</button>
+                <button id="btn-month" class="sw-btn active" onclick="switchCalendarMode('month')">Месяц</button>
+            </div>
+        </header>
+
+        <section id="view-calendar" class="flex-1 min-h-0 overflow-hidden">
+            <div class="calendar-shell">
+                <div class="calendar-main">
+                    <div id="calendarHeader" class="bg-card border-b border-white/10"></div>
+                    <div id="calendarGrid" class="calendar-grid-month"></div>
+                </div>
+
+                <aside class="queue-panel p-6 gap-5">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-xs uppercase tracking-[0.22em] text-gray-500 mb-2">Очередь</div>
+                            <h3 class="text-lg font-bold text-white">Запланировано к публикации</h3>
+                        </div>
+                        <div class="queue-pill">
+                            <i class="ph ph-clock-countdown"></i>
+                            <span id="queueCount">0 постов</span>
+                        </div>
+                    </div>
+
+                    <div id="queueList" class="flex-1 overflow-y-auto flex flex-col gap-3"></div>
+                </aside>
+            </div>
+        </section>
+
+        <section id="view-community" class="flex-1 hidden flex-row h-full overflow-hidden">
+            <div class="w-64 border-r border-white/10 bg-card p-6 flex flex-col gap-4">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest">Выберите соцсеть</h3>
+
+                <button class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 hover:border-primary transition text-gray-300">
+                    <i class="ph-fill ph-tiktok-logo text-xl text-white"></i> TikTok
+                </button>
+                <button class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 hover:border-primary transition text-gray-300">
+                    <i class="ph-fill ph-instagram-logo text-xl text-pink-500"></i> Instagram
+                </button>
+                <button class="flex items-center gap-3 p-3 rounded-lg border border-white/10 hover:bg-white/5 hover:border-primary transition text-gray-300">
+                    <i class="ph-fill ph-youtube-logo text-xl text-red-500"></i> YouTube
+                </button>
+            </div>
+
+            <div class="flex-1 p-8 overflow-y-auto bg-dark">
+                <div class="flex items-center justify-center h-full text-gray-500 flex-col gap-4">
+                    <i class="ph ph-chats-teardrop text-6xl text-white/10"></i>
+                    <p>Здесь можно будет читать и обрабатывать комментарии после подключения API платформ.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="connectModal" class="modal-overlay" onclick="dismissModal(event, 'connectModal')">
+        <div class="bg-card w-full max-w-md p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-6 relative">
+            <button onclick="closeModal('connectModal')" class="absolute top-4 right-4 text-gray-500 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+
+            <div>
+                <h3 class="text-xl font-bold text-white mb-1">Подключить канал</h3>
+                <p class="text-sm text-gray-400">Пока это безопасный локальный интерфейс. Реальную авторизацию соцсетей подключим отдельным этапом.</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="mockConnectChannel('TikTok', 'bg-black text-white', 'ph-tiktok-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-tiktok-logo text-3xl"></i>
+                    <span class="font-medium">TikTok</span>
+                </button>
+                <button onclick="mockConnectChannel('Instagram', 'bg-gradient-to-tr from-yellow-400 via-pink-500 to-purple-500 text-white', 'ph-instagram-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-instagram-logo text-3xl text-pink-500"></i>
+                    <span class="font-medium">Instagram</span>
+                </button>
+                <button onclick="mockConnectChannel('YouTube', 'bg-red-600 text-white', 'ph-youtube-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-youtube-logo text-3xl text-red-500"></i>
+                    <span class="font-medium">YouTube</span>
+                </button>
+                <button onclick="mockConnectChannel('Pinterest', 'bg-red-500 text-white', 'ph-pinterest-logo')" class="p-4 rounded-xl border border-white/10 flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-primary transition">
+                    <i class="ph-fill ph-pinterest-logo text-3xl text-red-500"></i>
+                    <span class="font-medium">Pinterest</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="authModal" class="modal-overlay" onclick="dismissModal(event, 'authModal')">
+        <div class="bg-card w-full max-w-md p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-xl font-bold text-white mb-1">Безопасный вход</h3>
+                    <p class="text-sm text-gray-400">Вход по email через magic link от Supabase Auth.</p>
+                </div>
+                <button onclick="closeModal('authModal')" class="text-gray-500 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+            </div>
+
+            <div class="panel-card flex flex-col gap-3">
+                <input id="authEmailInput" type="email" placeholder="you@example.com" class="w-full bg-dark border border-white/10 rounded-xl p-3 text-white focus:outline-none" />
+                <button onclick="loginWithEmail()" class="neon-border px-5 py-3 rounded-xl font-semibold">Отправить ссылку для входа</button>
+                <div id="authFeedback" class="text-xs text-gray-400">После входа посты будут сохраняться в Supabase только под вашим аккаунтом.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ideasModal" class="modal-overlay" onclick="dismissModal(event, 'ideasModal')">
+        <div class="bg-card w-full max-w-3xl p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white">Идеи для контента</h3>
+                <button onclick="closeModal('ideasModal')" class="text-gray-500 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+            </div>
+
+            <div class="panel-card grid grid-cols-1 md:grid-cols-[260px_minmax(0,1fr)] gap-4">
+                <input id="ideaBoardName" type="text" placeholder="Категория или образ" class="w-full bg-dark border border-white/10 rounded-xl p-3 text-white focus:outline-none" />
+                <textarea id="ideaBoardText" rows="5" placeholder="Основная идея&#10;- подпункт&#10;- подпункт" class="w-full bg-dark border border-white/10 rounded-xl p-3 text-white resize-none focus:outline-none"></textarea>
+                <div class="text-xs text-gray-400 md:col-span-2">Каждая строка без `-` станет отдельной идеей, строки с `-` будут подпунктами.</div>
+                <button onclick="saveIdeaBoard()" class="neon-border px-5 py-3 rounded-xl font-semibold md:col-span-2">Сохранить доску</button>
+            </div>
+
+            <div id="ideasList" class="grid grid-cols-1 gap-3 max-h-[55vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <div id="aiModal" class="modal-overlay" onclick="dismissModal(event, 'aiModal')">
+        <div class="bg-card w-full max-w-2xl p-6 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-5">
+            <div class="flex items-center justify-between">
+                <h3 class="text-xl font-bold text-white">ИИ-ассистент</h3>
+                <button onclick="closeModal('aiModal')" class="text-gray-500 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+            </div>
+
+            <textarea id="aiPrompt" rows="4" class="w-full bg-panel border border-white/10 rounded-xl p-4 text-white resize-none focus:outline-none" placeholder="Например: придумай 5 идей для Instagram Reels про бьюти-контент"></textarea>
+            <button onclick="generateAiSuggestion()" class="neon-border px-5 py-3 rounded-xl font-semibold">Сгенерировать</button>
+            <div id="aiResult" class="panel-card text-sm text-gray-300">Здесь появится черновик ответа ассистента.</div>
+        </div>
+    </div>
+
+    <div id="composerModal" class="modal-overlay" onclick="dismissModal(event, 'composerModal')">
+        <div class="bg-card w-[92%] max-w-[1180px] h-[88vh] rounded-2xl border border-white/10 flex overflow-hidden shadow-2xl">
+            <div class="flex-[1.45] border-r border-white/10 flex flex-col bg-card min-h-0">
+                <div class="h-[64px] border-b border-white/10 flex items-center justify-between px-6 flex-shrink-0">
+                    <h3 class="font-bold text-lg neon-text">Новая публикация</h3>
+                    <button onclick="closeModal('composerModal')" class="text-gray-400 hover:text-white"><i class="ph ph-x text-xl"></i></button>
+                </div>
+
+                <div class="p-6 flex-1 overflow-y-auto flex flex-col gap-5">
+                    <div id="composerContext" class="panel-card hidden text-sm text-gray-300"></div>
+
+                    <div class="flex flex-wrap gap-3">
+                        <button data-platform="TikTok" onclick="togglePlatform('TikTok')" class="platform-chip"><i class="ph-fill ph-tiktok-logo"></i> TikTok</button>
+                        <button data-platform="Instagram" onclick="togglePlatform('Instagram')" class="platform-chip"><i class="ph-fill ph-instagram-logo text-pink-400"></i> Instagram</button>
+                        <button data-platform="YouTube" onclick="togglePlatform('YouTube')" class="platform-chip"><i class="ph-fill ph-youtube-logo text-red-400"></i> YouTube</button>
+                        <button data-platform="Pinterest" onclick="togglePlatform('Pinterest')" class="platform-chip"><i class="ph-fill ph-pinterest-logo"></i> Pinterest</button>
+                    </div>
+
+                    <input id="postTitle" type="text" placeholder="Название публикации или видео" class="w-full bg-panel border border-white/10 rounded-xl p-3 text-white focus:outline-none" />
+
+                    <div class="relative">
+                        <textarea id="postContent" class="w-full h-36 bg-panel border border-white/10 rounded-xl p-4 text-white placeholder-gray-600 focus:outline-none focus:border-primary resize-none" placeholder="О чем хотите рассказать?"></textarea>
+
+                        <div class="absolute bottom-3 left-3 flex gap-2">
+                            <div class="relative">
+                                <button onclick="toggleDropdown('emojiMenu')" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400"><i class="ph ph-smiley"></i></button>
+                                <div id="emojiMenu" class="dropdown-content absolute bottom-full left-0 mb-2 w-64 bg-panel border border-white/10 rounded-xl shadow-xl p-3 z-50 flex-col gap-3">
+                                    <div class="text-xs font-bold text-gray-500 px-1 uppercase">Эмодзи</div>
+                                    <div class="emoji-grid">
+                                        <button onclick="insertEmoji('🔥')" class="emoji-btn">🔥</button>
+                                        <button onclick="insertEmoji('✨')" class="emoji-btn">✨</button>
+                                        <button onclick="insertEmoji('😍')" class="emoji-btn">😍</button>
+                                        <button onclick="insertEmoji('🎬')" class="emoji-btn">🎬</button>
+                                        <button onclick="insertEmoji('📸')" class="emoji-btn">📸</button>
+                                        <button onclick="insertEmoji('🚀')" class="emoji-btn">🚀</button>
+                                        <button onclick="insertEmoji('💡')" class="emoji-btn">💡</button>
+                                        <button onclick="insertEmoji('❤️')" class="emoji-btn">❤️</button>
+                                        <button onclick="insertEmoji('🎵')" class="emoji-btn">🎵</button>
+                                        <button onclick="insertEmoji('🎉')" class="emoji-btn">🎉</button>
+                                        <button onclick="insertEmoji('👀')" class="emoji-btn">👀</button>
+                                        <button onclick="insertEmoji('🙌')" class="emoji-btn">🙌</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="relative">
+                                <button onclick="toggleDropdown('hashMenu')" class="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-gray-400"><i class="ph ph-hash"></i></button>
+                                <div id="hashMenu" class="dropdown-content absolute bottom-full left-0 mb-2 w-72 bg-panel border border-white/10 rounded-xl shadow-xl p-3 z-50 flex-col gap-3 max-h-[420px] overflow-y-auto">
+                                    <div class="text-xs font-bold text-gray-500 px-1 uppercase">Группы хештегов</div>
+                                    <div id="hashtagGroupsList" class="flex flex-col gap-2"></div>
+                                    <div class="tag-group-card flex flex-col gap-2">
+                                        <input id="newHashtagGroupName" type="text" placeholder="Название группы" class="w-full bg-dark border border-white/10 rounded-lg p-2 text-white text-xs focus:outline-none" />
+                                        <textarea id="newHashtagGroupTags" rows="2" placeholder="#reels #lumina #beauty" class="w-full bg-dark border border-white/10 rounded-lg p-2 text-white text-xs resize-none focus:outline-none"></textarea>
+                                        <button onclick="saveHashtagGroup()" class="ghost-btn w-full">Сохранить группу</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input id="mediaFileInput" type="file" accept="image/*,video/*" class="hidden" />
+                    <div id="uploadZone" class="upload-zone border-2 border-dashed border-white/20 rounded-xl p-8 flex flex-col items-center justify-center text-gray-500 hover:border-primary hover:bg-primary/5 transition cursor-pointer">
+                        <i class="ph ph-image text-3xl mb-2"></i>
+                        <span class="font-medium">Перетащите фото или видео, либо нажмите для выбора</span>
+                        <span id="uploadFileName" class="text-xs text-gray-400 mt-2"></span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <input id="postMediaUrl" type="text" placeholder="Ссылка на медиа (если уже есть URL)" class="w-full bg-panel border border-white/10 rounded-xl p-3 text-white focus:outline-none" />
+                        <input id="scheduleDateTime" type="datetime-local" class="w-full bg-panel border border-white/10 rounded-xl p-3 text-white focus:outline-none" />
+                    </div>
+
+                    <div id="platformSettings" class="grid grid-cols-1 gap-4"></div>
+                </div>
+
+                <div class="h-[72px] border-t border-white/10 flex items-center justify-between px-6 bg-card flex-shrink-0">
+                    <div class="text-xs text-gray-500">Без входа посты сохраняются только локально.</div>
+                    <div class="flex gap-3">
+                        <button id="deletePostButton" class="ghost-btn hidden">Удалить</button>
+                        <button id="scheduleButton" class="neon-border px-8 py-2.5 font-bold rounded-xl">Запланировать</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex-1 bg-[#050508] p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                <div class="text-gray-500 font-bold tracking-widest uppercase text-xs mb-6 text-center">Предпросмотр</div>
+
+                <div class="w-[290px] h-[600px] rounded-[3rem] border-8 border-[#1a1a24] bg-black relative shadow-2xl shadow-primary/10 overflow-hidden flex flex-col z-10">
+                    <div class="w-32 h-6 bg-[#1a1a24] absolute top-0 left-1/2 -translate-x-1/2 rounded-b-xl z-20"></div>
+                    <div class="flex-1 p-4 pt-10 text-white flex flex-col">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-blue-500"></div>
+                            <div id="previewPlatforms" class="text-sm font-bold">TikTok</div>
+                        </div>
+
+                        <div class="w-full aspect-square bg-white/5 rounded-xl border border-white/10 flex items-center justify-center text-gray-600 mb-4 overflow-hidden">
+                            <img id="previewImage" class="hidden w-full h-full object-cover" alt="preview" />
+                            <video id="previewVideo" class="hidden w-full h-full object-cover" controls></video>
+                            <div id="previewPlaceholder" class="flex items-center justify-center w-full h-full"><i class="ph ph-image text-3xl"></i></div>
+                        </div>
+
+                        <div id="previewText" class="text-xs text-gray-300 leading-relaxed">Здесь появится текст вашей публикации...</div>
+                    </div>
+                </div>
+
+                <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-[100px] pointer-events-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+        const weekdayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+
+        const supabaseConfig = {
+            url: "https://ltrglnjbsyoelkagqbbh.supabase.co",
+            anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx0cmdsbmpic3lvZWxrYWdxYmJoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzgyNDksImV4cCI6MjA5MDc1NDI0OX0.VhZiD9OVDfv3nlfYysBNXPsax4RkevErwWImMlqW9BM",
+            table: "posts"
+        };
+
+        const state = {
+            currentView: "calendar",
+            calendarMode: "month",
+            currentDate: new Date(),
+            selectedSchedule: null,
+            selectedPlatforms: ["TikTok"],
+            editingPostId: null,
+            posts: [],
+            hashtagGroups: [],
+            ideaBoards: [],
+            connectedChannels: JSON.parse(localStorage.getItem("lumina_channels") || "[]"),
+            localUserId: localStorage.getItem("lumina_user_id") || crypto.randomUUID(),
+            authUserId: null,
+            supabase: null
+        };
+
+        localStorage.setItem("lumina_user_id", state.localUserId);
+
+        function getCurrentUserId() {
+            return state.authUserId || state.localUserId;
+        }
+
+        function getScopedStorageKey(key) {
+            return `lumina_${key}_${getCurrentUserId()}`;
+        }
+
+        function formatDateKey(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, "0");
+            const d = String(date.getDate()).padStart(2, "0");
+            return `${y}-${m}-${d}`;
+        }
+
+        function formatDateTimeLocal(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, "0");
+            const d = String(date.getDate()).padStart(2, "0");
+            const hh = String(date.getHours()).padStart(2, "0");
+            const mm = String(date.getMinutes()).padStart(2, "0");
+            return `${y}-${m}-${d}T${hh}:${mm}`;
+        }
+
+        function getStartOfWeek(date) {
+            const clone = new Date(date);
+            const day = clone.getDay();
+            const diff = day === 0 ? -6 : 1 - day;
+            clone.setDate(clone.getDate() + diff);
+            clone.setHours(0, 0, 0, 0);
+            return clone;
+        }
+
+        function isToday(date) {
+            const now = new Date();
+            return date.getFullYear() === now.getFullYear() &&
+                date.getMonth() === now.getMonth() &&
+                date.getDate() === now.getDate();
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = "flex";
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = "none";
+            if (id === "composerModal") {
+                document.querySelectorAll(".dropdown-content").forEach((el) => el.classList.remove("show"));
+            }
+        }
+
+        function dismissModal(event, id) {
+            if (event.target.id === id) closeModal(id);
+        }
+
+        function toggleDropdown(id) {
+            const target = document.getElementById(id);
+            const shouldOpen = !target.classList.contains("show");
+            document.querySelectorAll(".dropdown-content").forEach((el) => el.classList.remove("show"));
+            if (shouldOpen) target.classList.add("show");
+            if (id === "hashMenu" && shouldOpen) renderHashtagGroups();
+        }
+
+        function hideDropdown(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove("show");
+        }
+
+        function switchMainView(viewId, el) {
+            document.querySelectorAll(".nav-item").forEach((nav) => nav.classList.remove("active"));
+            el.classList.add("active");
+
+            ["calendar", "community"].forEach((name) => {
+                const section = document.getElementById(`view-${name}`);
+                section.classList.add("hidden");
+                section.classList.remove("flex");
+            });
+
+            const target = document.getElementById(`view-${viewId}`);
+            target.classList.remove("hidden");
+            target.classList.add("flex");
+
+            state.currentView = viewId;
+            document.getElementById("mainTitle").innerText = viewId === "calendar" ? "Календарь" : "Сообщество";
+            document.getElementById("calendarControls").style.display = viewId === "calendar" ? "flex" : "none";
+            document.getElementById("dateNavigation").style.display = viewId === "calendar" ? "flex" : "none";
+        }
+
+        function updateMonthYearDisplay() {
+            const display = document.getElementById("currentMonthYear");
+
+            if (state.calendarMode === "month") {
+                display.innerText = `${monthNames[state.currentDate.getMonth()]} ${state.currentDate.getFullYear()}`;
+                return;
+            }
+
+            const start = getStartOfWeek(state.currentDate);
+            const end = new Date(start);
+            end.setDate(start.getDate() + 6);
+            display.innerText = `${start.getDate()} ${monthNames[start.getMonth()]} - ${end.getDate()} ${monthNames[end.getMonth()]}`;
+        }
+
+        function renderCalendarHeader() {
+            const header = document.getElementById("calendarHeader");
+
+            if (state.calendarMode === "month") {
+                header.className = "bg-card border-b border-white/10 day-head-month";
+                header.innerHTML = weekdayNames.map((day) => `<div class="day-head-cell">${day}</div>`).join("");
+                return;
+            }
+
+            const start = getStartOfWeek(state.currentDate);
+            header.className = "bg-card border-b border-white/10 day-head-week";
+            header.innerHTML = `<div class="day-head-cell"></div>` + Array.from({ length: 7 }, (_, index) => {
+                const date = new Date(start);
+                date.setDate(start.getDate() + index);
+                return `<div class="day-head-cell">${weekdayNames[index]}<div class="mt-1 text-white text-sm">${date.getDate()}</div></div>`;
+            }).join("");
+        }
+
+        function getPostsForDay(date) {
+            const key = formatDateKey(date);
+            return state.posts.filter((post) => formatDateKey(new Date(post.post_date)) === key);
+        }
+
+        function getScheduledPosts() {
+            return [...state.posts]
+                .filter((post) => post.status === "scheduled")
+                .sort((a, b) => new Date(a.post_date) - new Date(b.post_date));
+        }
+
+        function renderMonth() {
+            const grid = document.getElementById("calendarGrid");
+            grid.className = "calendar-grid-month";
+            grid.innerHTML = "";
+
+            const year = state.currentDate.getFullYear();
+            const month = state.currentDate.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const startOffset = (firstDay.getDay() + 6) % 7;
+            const totalCells = 42;
+
+            for (let i = 0; i < totalCells; i += 1) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+
+                if (i < startOffset || i >= startOffset + daysInMonth) {
+                    cell.innerHTML = `<span class="text-xs text-gray-700"> </span>`;
+                    grid.appendChild(cell);
+                    continue;
+                }
+
+                const dayNumber = i - startOffset + 1;
+                const date = new Date(year, month, dayNumber);
+                const posts = getPostsForDay(date);
+
+                cell.innerHTML = `
+                    <div class="calendar-date ${isToday(date) ? "today" : ""}">${dayNumber}</div>
+                    <button class="calendar-add-btn" onclick="openComposerForDate('${formatDateKey(date)}', 10)">+</button>
+                    <div>
+                        ${posts.map((post) => `
+                            <div class="calendar-post" onclick="editPost('${post.id}')">
+                                ${escapeHtml(post.title || post.text || "Пост")}
+                            </div>
+                        `).join("")}
+                    </div>
+                `;
+
+                grid.appendChild(cell);
+            }
+        }
+
+        function renderWeek() {
+            const grid = document.getElementById("calendarGrid");
+            grid.className = "calendar-grid-week";
+            grid.innerHTML = "";
+
+            const weekStart = getStartOfWeek(state.currentDate);
+
+            for (let hour = 8; hour <= 20; hour += 1) {
+                grid.innerHTML += `<div class="border-b border-r border-white/10 text-xs text-gray-500 p-2 text-right bg-card">${String(hour).padStart(2, "0")}:00</div>`;
+
+                for (let day = 0; day < 7; day += 1) {
+                    const slotDate = new Date(weekStart);
+                    slotDate.setDate(weekStart.getDate() + day);
+                    slotDate.setHours(hour, 0, 0, 0);
+
+                    const posts = state.posts.filter((post) => {
+                        const postDate = new Date(post.post_date);
+                        return formatDateKey(postDate) === formatDateKey(slotDate) && postDate.getHours() === hour;
+                    });
+
+                    grid.innerHTML += `
+                        <div class="week-slot ${posts.length ? "has-event" : ""}">
+                            <button class="slot-add-btn" onclick="openComposerForDate('${formatDateKey(slotDate)}', ${hour})">+</button>
+                            <div class="p-2 flex flex-col gap-1">
+                                ${posts.map((post) => `
+                                    <div class="calendar-post !mt-0" onclick="editPost('${post.id}')">
+                                        ${escapeHtml(post.title || post.text || "Пост")}
+                                    </div>
+                                `).join("")}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function renderQueue() {
+            const queue = document.getElementById("queueList");
+            const items = getScheduledPosts();
+            document.getElementById("queueCount").innerText = `${items.length} постов`;
+
+            if (!items.length) {
+                queue.innerHTML = `
+                    <div class="queue-item text-gray-400">
+                        <div class="font-semibold text-white">Очередь пока пустая</div>
+                        <div>Нажми на любой плюс в календаре и создай первый пост.</div>
+                    </div>
+                `;
+                return;
+            }
+
+            queue.innerHTML = items.map((post) => `
+                <div class="queue-item">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-xs text-gray-500">${new Date(post.post_date).toLocaleString("ru-RU")}</div>
+                            <div class="font-semibold text-white mt-1">${escapeHtml(post.title || "Без названия")}</div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="editPost('${post.id}')" class="ghost-btn px-3 py-2">Открыть</button>
+                            <button onclick="removePostConfirm('${post.id}')" class="ghost-btn px-3 py-2">Удалить</button>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-300">${escapeHtml(post.text || "Без текста")}</div>
+                    ${post.pinterest_link ? `<div class="text-xs text-neonBlue break-all">${escapeHtml(post.pinterest_link)}</div>` : ""}
+                    <div class="flex flex-wrap gap-2">
+                        ${(post.platforms || []).map((platform) => `<span class="queue-pill">${escapeHtml(platform)}</span>`).join("")}
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function renderCalendar() {
+            updateMonthYearDisplay();
+            renderCalendarHeader();
+            if (state.calendarMode === "month") renderMonth();
+            else renderWeek();
+            renderQueue();
+        }
+
+        function switchCalendarMode(mode) {
+            state.calendarMode = mode;
+            document.querySelectorAll(".sw-btn").forEach((btn) => btn.classList.remove("active"));
+            document.getElementById(`btn-${mode}`).classList.add("active");
+            renderCalendar();
+        }
+
+        function navigateCalendar(step) {
+            if (state.calendarMode === "month") {
+                state.currentDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth() + step, 1);
+            } else {
+                const next = new Date(state.currentDate);
+                next.setDate(next.getDate() + step * 7);
+                state.currentDate = next;
+            }
+            renderCalendar();
+        }
+
+        function renderChannels() {
+            const list = document.getElementById("channelsList");
+            if (!state.connectedChannels.length) {
+                list.innerHTML = `<div class="px-3 text-xs text-gray-500">Пока нет подключенных каналов.</div>`;
+                return;
+            }
+
+            list.innerHTML = state.connectedChannels.map((channel) => `
+                <div class="flex items-center gap-3 px-3 py-2 rounded-xl text-gray-300 hover:bg-white/5">
+                    <div class="w-6 h-6 rounded flex items-center justify-center text-xs ${channel.bgClass}">
+                        <i class="ph-fill ${channel.iconClass}"></i>
+                    </div>
+                    <span>@lumina_${escapeHtml(channel.slug)}</span>
+                </div>
+            `).join("");
+        }
+
+        function updateAuthUi() {
+            const statusText = document.getElementById("authStatusText");
+            const statusHint = document.getElementById("authStatusHint");
+            const openButton = document.getElementById("authOpenButton");
+            const logoutButton = document.getElementById("authLogoutButton");
+
+            if (state.authUserId) {
+                const email = localStorage.getItem("lumina_auth_email") || "Аккаунт подключен";
+                statusText.innerText = email;
+                statusHint.innerText = "Посты из Supabase привязаны только к вашему аккаунту.";
+                openButton.innerText = "Сменить email";
+                logoutButton.classList.remove("hidden");
+            } else {
+                statusText.innerText = "Гостевой режим";
+                statusHint.innerText = "Без входа данные хранятся локально в браузере.";
+                openButton.innerText = "Войти";
+                logoutButton.classList.add("hidden");
+            }
+        }
+
+        async function initializeSupabase() {
+            if (!window.supabase || !supabaseConfig.url || !supabaseConfig.anonKey) {
+                updateAuthUi();
+                return null;
+            }
+
+            state.supabase = window.supabase.createClient(supabaseConfig.url, supabaseConfig.anonKey);
+
+            const { data } = await state.supabase.auth.getSession();
+            const user = data?.session?.user || null;
+            state.authUserId = user?.id || null;
+            if (user?.email) localStorage.setItem("lumina_auth_email", user.email);
+
+            updateAuthUi();
+
+            state.supabase.auth.onAuthStateChange(async (_event, session) => {
+                state.authUserId = session?.user?.id || null;
+                if (session?.user?.email) localStorage.setItem("lumina_auth_email", session.user.email);
+                else localStorage.removeItem("lumina_auth_email");
+
+                updateAuthUi();
+                await loadPosts();
+            });
+
+            return state.supabase;
+        }
+
+        function openAuthModal() {
+            hideDropdown("createMenu");
+            document.getElementById("authEmailInput").value = localStorage.getItem("lumina_auth_email") || "";
+            document.getElementById("authFeedback").innerText = "После входа посты будут сохраняться в Supabase только под вашим аккаунтом.";
+            openModal("authModal");
+        }
+
+        async function loginWithEmail() {
+            if (!state.supabase) {
+                document.getElementById("authFeedback").innerText = "Supabase пока не инициализирован.";
+                return;
+            }
+
+            const email = document.getElementById("authEmailInput").value.trim();
+            if (!email) {
+                document.getElementById("authFeedback").innerText = "Введите email.";
+                return;
+            }
+
+            const { error } = await state.supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    emailRedirectTo: window.location.href
+                }
+            });
+
+            if (error) {
+                document.getElementById("authFeedback").innerText = `Ошибка входа: ${error.message}`;
+                return;
+            }
+
+            localStorage.setItem("lumina_auth_email", email);
+            document.getElementById("authFeedback").innerText = "Ссылка отправлена на email. Откройте письмо и вернитесь на эту страницу.";
+        }
+
+        async function logoutUser() {
+            if (!state.supabase) return;
+            await state.supabase.auth.signOut();
+        }
+
+        async function loadPosts() {
+            const stored = localStorage.getItem(getScopedStorageKey("posts"));
+            state.posts = stored ? safeJsonParse(stored, []) : [];
+
+            if (state.supabase && state.authUserId) {
+                const { data, error } = await state.supabase
+                    .from(supabaseConfig.table)
+                    .select("*")
+                    .eq("user_id", state.authUserId)
+                    .order("post_date", { ascending: true });
+
+                if (!error && Array.isArray(data)) {
+                    state.posts = data.map((item) => ({
+                        ...item,
+                        platforms: Array.isArray(item.platforms) ? item.platforms : []
+                    }));
+                    persistLocalPosts();
+                }
+            }
+
+            renderCalendar();
+        }
+
+        function persistLocalPosts() {
+            localStorage.setItem(getScopedStorageKey("posts"), JSON.stringify(state.posts));
+        }
+
+        async function upsertPost(post) {
+            if (!state.supabase || !state.authUserId) {
+                return { ...post, id: post.id || `local-${Date.now()}` };
+            }
+
+            const payload = {
+                user_id: state.authUserId,
+                title: post.title || null,
+                text: post.text || null,
+                media_url: post.media_url || null,
+                pinterest_link: post.pinterest_link || null,
+                platforms: post.platforms || [],
+                post_date: post.post_date,
+                status: post.status
+            };
+
+            if (post.id && !String(post.id).startsWith("local-")) {
+                const { data } = await state.supabase
+                    .from(supabaseConfig.table)
+                    .update(payload)
+                    .eq("id", post.id)
+                    .eq("user_id", state.authUserId)
+                    .select()
+                    .single();
+
+                return data ? { ...data, platforms: Array.isArray(data.platforms) ? data.platforms : [] } : post;
+            }
+
+            const { data } = await state.supabase
+                .from(supabaseConfig.table)
+                .insert(payload)
+                .select()
+                .single();
+
+            return data ? { ...data, platforms: Array.isArray(data.platforms) ? data.platforms : [] } : { ...post, id: `local-${Date.now()}` };
+        }
+
+        async function removePost(postId) {
+            if (state.supabase && state.authUserId && !String(postId).startsWith("local-")) {
+                await state.supabase.from(supabaseConfig.table).delete().eq("id", postId).eq("user_id", state.authUserId);
+            }
+
+            state.posts = state.posts.filter((post) => String(post.id) !== String(postId));
+            persistLocalPosts();
+            renderCalendar();
+        }
+
+        function removePostConfirm(postId) {
+            if (!window.confirm("Удалить этот пост из календаря и очереди?")) return;
+            removePost(postId);
+        }
+
+        function syncPlatformButtons() {
+            document.querySelectorAll("[data-platform]").forEach((button) => {
+                button.classList.toggle("active", state.selectedPlatforms.includes(button.dataset.platform));
+            });
+            document.getElementById("previewPlatforms").innerText = state.selectedPlatforms.join(", ") || "Выберите площадки";
+            renderPlatformSettings();
+        }
+
+        function getPlatformSettingsMarkup(platform) {
+            if (platform === "TikTok") {
+                return `
+                    <div class="settings-card">
+                        <div class="font-semibold text-white mb-3">TikTok</div>
+                        <label class="text-xs text-gray-400">Формат</label>
+                        <select class="w-full mt-1 mb-3 bg-dark border border-white/10 rounded-xl p-3 text-white">
+                            <option>Видео TikTok</option>
+                            <option>Фото-пост TikTok</option>
+                        </select>
+                        <label class="text-xs text-gray-400">Описание для TikTok</label>
+                        <textarea rows="3" class="w-full mt-1 bg-dark border border-white/10 rounded-xl p-3 text-white resize-none" placeholder="Отдельное описание для TikTok"></textarea>
+                    </div>
+                `;
+            }
+
+            if (platform === "Instagram") {
+                return `
+                    <div class="settings-card">
+                        <div class="font-semibold text-white mb-3">Instagram</div>
+                        <label class="text-xs text-gray-400">Формат</label>
+                        <select class="w-full mt-1 mb-3 bg-dark border border-white/10 rounded-xl p-3 text-white">
+                            <option>Instagram Reel</option>
+                            <option>Instagram Post</option>
+                        </select>
+                        <label class="text-xs text-gray-400">Описание для Instagram</label>
+                        <textarea rows="3" class="w-full mt-1 bg-dark border border-white/10 rounded-xl p-3 text-white resize-none" placeholder="Отдельное описание для Instagram"></textarea>
+                    </div>
+                `;
+            }
+
+            if (platform === "YouTube") {
+                return `
+                    <div class="settings-card">
+                        <div class="font-semibold text-white mb-3">YouTube</div>
+                        <label class="text-xs text-gray-400">Формат</label>
+                        <select class="w-full mt-1 mb-3 bg-dark border border-white/10 rounded-xl p-3 text-white">
+                            <option>YouTube Shorts</option>
+                        </select>
+                        <label class="text-xs text-gray-400">Описание для YouTube</label>
+                        <textarea rows="3" class="w-full mt-1 bg-dark border border-white/10 rounded-xl p-3 text-white resize-none" placeholder="Отдельное описание для YouTube"></textarea>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="settings-card">
+                    <div class="font-semibold text-white mb-3">Pinterest</div>
+                    <label class="text-xs text-gray-400">Описание для Pinterest</label>
+                    <textarea rows="3" class="w-full mt-1 mb-3 bg-dark border border-white/10 rounded-xl p-3 text-white resize-none" placeholder="Отдельное описание для Pinterest"></textarea>
+                    <label class="text-xs text-gray-400">Встроенная ссылка</label>
+                    <input id="pinterestLinkInput" class="w-full mt-1 bg-dark border border-white/10 rounded-xl p-3 text-white" placeholder="https://site.com/page" />
+                </div>
+            `;
+        }
+
+        function renderPlatformSettings() {
+            document.getElementById("platformSettings").innerHTML = state.selectedPlatforms.map(getPlatformSettingsMarkup).join("");
+        }
+
+        function togglePlatform(platform) {
+            const exists = state.selectedPlatforms.includes(platform);
+
+            if (exists && state.selectedPlatforms.length === 1) return;
+
+            if (exists) state.selectedPlatforms = state.selectedPlatforms.filter((item) => item !== platform);
+            else state.selectedPlatforms.push(platform);
+
+            syncPlatformButtons();
+        }
+
+        function resetComposer() {
+            state.editingPostId = null;
+            state.selectedPlatforms = ["TikTok"];
+
+            document.getElementById("postTitle").value = "";
+            document.getElementById("postContent").value = "";
+            document.getElementById("postMediaUrl").value = "";
+            document.getElementById("scheduleDateTime").value = "";
+            document.getElementById("uploadFileName").innerText = "";
+            document.getElementById("previewText").innerText = "Здесь появится текст вашей публикации...";
+            document.getElementById("previewImage").classList.add("hidden");
+            document.getElementById("previewVideo").classList.add("hidden");
+            document.getElementById("previewPlaceholder").classList.remove("hidden");
+            document.getElementById("previewImage").src = "";
+            document.getElementById("previewVideo").src = "";
+            document.getElementById("deletePostButton").classList.add("hidden");
+            document.getElementById("composerContext").classList.add("hidden");
+
+            syncPlatformButtons();
+        }
+
+        function openComposerForDate(dateKey, hour = 10) {
+            resetComposer();
+            const date = new Date(`${dateKey}T${String(hour).padStart(2, "0")}:00:00`);
+            state.selectedSchedule = date;
+            document.getElementById("scheduleDateTime").value = formatDateTimeLocal(date);
+            const context = document.getElementById("composerContext");
+            context.classList.remove("hidden");
+            context.innerText = `Создание поста на ${date.toLocaleDateString("ru-RU")} в ${String(hour).padStart(2, "0")}:00`;
+            openModal("composerModal");
+        }
+
+        function createQuickPost() {
+            hideDropdown("createMenu");
+            const now = new Date();
+            now.setHours(now.getHours() + 1, 0, 0, 0);
+            openComposerForDate(formatDateKey(now), now.getHours());
+        }
+
+        function editPost(postId) {
+            const post = state.posts.find((item) => String(item.id) === String(postId));
+            if (!post) return;
+
+            resetComposer();
+            state.editingPostId = post.id;
+            state.selectedPlatforms = Array.isArray(post.platforms) && post.platforms.length ? post.platforms : ["TikTok"];
+            syncPlatformButtons();
+
+            document.getElementById("postTitle").value = post.title || "";
+            document.getElementById("postContent").value = post.text || "";
+            document.getElementById("postMediaUrl").value = post.media_url || "";
+            document.getElementById("scheduleDateTime").value = formatDateTimeLocal(new Date(post.post_date));
+            document.getElementById("uploadFileName").innerText = post.media_url || "";
+            document.getElementById("previewText").innerText = post.text || "Здесь появится текст вашей публикации...";
+            document.getElementById("deletePostButton").classList.remove("hidden");
+
+            const context = document.getElementById("composerContext");
+            context.classList.remove("hidden");
+            context.innerText = `Редактирование поста на ${new Date(post.post_date).toLocaleDateString("ru-RU")}`;
+
+            openModal("composerModal");
+
+            if (post.pinterest_link && document.getElementById("pinterestLinkInput")) {
+                document.getElementById("pinterestLinkInput").value = post.pinterest_link;
+            }
+        }
+
+        function insertEmoji(emoji) {
+            const textarea = document.getElementById("postContent");
+            textarea.value += emoji;
+            textarea.dispatchEvent(new Event("input"));
+            hideDropdown("emojiMenu");
+        }
+
+        function insertHashtags(tags) {
+            const textarea = document.getElementById("postContent");
+            textarea.value += `${textarea.value.length ? "\n\n" : ""}${tags}`;
+            textarea.dispatchEvent(new Event("input"));
+            hideDropdown("hashMenu");
+        }
+
+        function loadHashtagGroups() {
+            const stored = localStorage.getItem(getScopedStorageKey("hashtag_groups"));
+            state.hashtagGroups = stored ? safeJsonParse(stored, []) : [
+                { name: "Технологии", tags: "#tech #lumina #ai" },
+                { name: "Лайфстайл", tags: "#vlog #life #day" }
+            ];
+            renderHashtagGroups();
+        }
+
+        function renderHashtagGroups() {
+            const container = document.getElementById("hashtagGroupsList");
+
+            if (!state.hashtagGroups.length) {
+                container.innerHTML = `<div class="text-xs text-gray-500 px-1">Сохраненные группы появятся здесь.</div>`;
+                return;
+            }
+
+            container.innerHTML = state.hashtagGroups.map((group, index) => `
+                <div class="tag-group-card">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <div class="text-xs font-semibold text-white">${escapeHtml(group.name)}</div>
+                        <button onclick="deleteHashtagGroup(${index})" class="text-gray-500 hover:text-white"><i class="ph ph-trash"></i></button>
+                    </div>
+                    <div class="text-[11px] text-gray-400 mb-3">${escapeHtml(group.tags)}</div>
+                    <button onclick="insertHashtags('${group.tags.replace(/'/g, "\\'")}')" class="ghost-btn w-full">Добавить в текст</button>
+                </div>
+            `).join("");
+        }
+
+        function saveHashtagGroup() {
+            const name = document.getElementById("newHashtagGroupName").value.trim();
+            const tags = document.getElementById("newHashtagGroupTags").value.trim();
+            if (!name || !tags) return;
+
+            state.hashtagGroups.unshift({ name, tags });
+            localStorage.setItem(getScopedStorageKey("hashtag_groups"), JSON.stringify(state.hashtagGroups));
+
+            document.getElementById("newHashtagGroupName").value = "";
+            document.getElementById("newHashtagGroupTags").value = "";
+
+            renderHashtagGroups();
+            document.getElementById("hashMenu").classList.add("show");
+        }
+
+        function deleteHashtagGroup(index) {
+            if (!window.confirm("Удалить эту группу хештегов?")) return;
+            state.hashtagGroups.splice(index, 1);
+            localStorage.setItem(getScopedStorageKey("hashtag_groups"), JSON.stringify(state.hashtagGroups));
+            renderHashtagGroups();
+        }
+
+        function parseIdeaNotes(text) {
+            const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+            const notes = [];
+            let current = null;
+
+            lines.forEach((line) => {
+                if (line.startsWith("-")) {
+                    if (current) current.items.push(line.replace(/^-+\s*/, "").trim());
+                    return;
+                }
+
+                current = { title: line, items: [] };
+                notes.push(current);
+            });
+
+            return notes;
+        }
+
+        function loadIdeaBoards() {
+            const stored = localStorage.getItem(getScopedStorageKey("idea_boards"));
+            state.ideaBoards = stored ? safeJsonParse(stored, []) : [];
+        }
+
+        function renderIdeaBoards() {
+            const container = document.getElementById("ideasList");
+
+            if (!state.ideaBoards.length) {
+                container.innerHTML = `<div class="panel-card text-gray-400">Создай первую доску и храни в ней идеи, сцены, подпункты и детали образа.</div>`;
+                return;
+            }
+
+            container.innerHTML = state.ideaBoards.map((board, boardIndex) => `
+                <div class="panel-card flex flex-col gap-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="font-semibold text-white">${escapeHtml(board.name)}</div>
+                        <div class="flex gap-2">
+                            <button onclick="addIdeaNote(${boardIndex})" class="ghost-btn px-3 py-2">Добавить идею</button>
+                            <button onclick="deleteIdeaBoard(${boardIndex})" class="text-gray-500 hover:text-white"><i class="ph ph-trash"></i></button>
+                        </div>
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        ${(board.notes || []).map((note) => `
+                            <div class="idea-note">
+                                <div class="text-sm font-semibold text-white mb-2">${escapeHtml(note.title)}</div>
+                                ${(note.items || []).length
+                                    ? `<div class="flex flex-col gap-1">${note.items.map((item) => `<div class="text-sm text-gray-300">- ${escapeHtml(item)}</div>`).join("")}</div>`
+                                    : `<div class="text-sm text-gray-500">Без подпунктов</div>`}
+                            </div>
+                        `).join("")}
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function openIdeasModal() {
+            hideDropdown("createMenu");
+            renderIdeaBoards();
+            openModal("ideasModal");
+        }
+
+        function saveIdeaBoard() {
+            const name = document.getElementById("ideaBoardName").value.trim();
+            const text = document.getElementById("ideaBoardText").value.trim();
+
+            if (!name || !text) return;
+
+            const notes = parseIdeaNotes(text);
+            if (!notes.length) return;
+
+            state.ideaBoards.unshift({ name, notes });
+            localStorage.setItem(getScopedStorageKey("idea_boards"), JSON.stringify(state.ideaBoards));
+
+            document.getElementById("ideaBoardName").value = "";
+            document.getElementById("ideaBoardText").value = "";
+
+            renderIdeaBoards();
+        }
+
+        function deleteIdeaBoard(index) {
+            if (!window.confirm("Удалить эту доску с идеями?")) return;
+            state.ideaBoards.splice(index, 1);
+            localStorage.setItem(getScopedStorageKey("idea_boards"), JSON.stringify(state.ideaBoards));
+            renderIdeaBoards();
+        }
+
+        function addIdeaNote(boardIndex) {
+            const title = window.prompt("Название новой идеи:");
+            if (!title || !title.trim()) return;
+
+            const subpointsRaw = window.prompt("Подпункты через запятую или с новой строки:");
+            const items = subpointsRaw
+                ? subpointsRaw.split(/\n|,/).map((item) => item.trim()).filter(Boolean)
+                : [];
+
+            if (!state.ideaBoards[boardIndex].notes) state.ideaBoards[boardIndex].notes = [];
+            state.ideaBoards[boardIndex].notes.push({ title: title.trim(), items });
+
+            localStorage.setItem(getScopedStorageKey("idea_boards"), JSON.stringify(state.ideaBoards));
+            renderIdeaBoards();
+        }
+
+        function openAiAssistantModal() {
+            hideDropdown("createMenu");
+            openModal("aiModal");
+        }
+
+        function generateAiSuggestion() {
+            const prompt = document.getElementById("aiPrompt").value.trim();
+            document.getElementById("aiResult").innerText = prompt
+                ? `Черновик для запроса: ${prompt}\n\n1. Хук в первой строке.\n2. Краткая ценность для аудитории.\n3. Призыв сохранить пост или ответить в комментариях.`
+                : "Напиши запрос, и здесь появится черновик идеи или текста.";
+        }
+
+        function mockConnectChannel(name, bgClass, iconClass) {
+            if (!state.authUserId) {
+                closeModal("connectModal");
+                openAuthModal();
+                return;
+            }
+
+            const slug = name.toLowerCase();
+            if (state.connectedChannels.some((channel) => channel.slug === slug)) {
+                closeModal("connectModal");
+                return;
+            }
+
+            state.connectedChannels.push({ slug, bgClass, iconClass });
+            localStorage.setItem("lumina_channels", JSON.stringify(state.connectedChannels));
+            renderChannels();
+            closeModal("connectModal");
+        }
+
+        function handleSelectedFile(file) {
+            if (!file) return;
+
+            document.getElementById("uploadFileName").innerText = file.name;
+            document.getElementById("postMediaUrl").value = file.name;
+
+            const image = document.getElementById("previewImage");
+            const video = document.getElementById("previewVideo");
+            const placeholder = document.getElementById("previewPlaceholder");
+            const objectUrl = URL.createObjectURL(file);
+
+            image.classList.add("hidden");
+            video.classList.add("hidden");
+            placeholder.classList.add("hidden");
+
+            if (file.type.startsWith("image/")) {
+                image.src = objectUrl;
+                image.classList.remove("hidden");
+            } else if (file.type.startsWith("video/")) {
+                video.src = objectUrl;
+                video.classList.remove("hidden");
+            } else {
+                placeholder.classList.remove("hidden");
+            }
+        }
+
+        document.getElementById("postContent").addEventListener("input", (event) => {
+            document.getElementById("previewText").innerText = event.target.value || "Здесь появится текст вашей публикации...";
+        });
+
+        document.getElementById("mediaFileInput").addEventListener("change", (event) => {
+            handleSelectedFile(event.target.files[0]);
+        });
+
+        const uploadZone = document.getElementById("uploadZone");
+        uploadZone.addEventListener("click", () => document.getElementById("mediaFileInput").click());
+        uploadZone.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            uploadZone.classList.add("dragover");
+        });
+        uploadZone.addEventListener("dragleave", () => uploadZone.classList.remove("dragover"));
+        uploadZone.addEventListener("drop", (event) => {
+            event.preventDefault();
+            uploadZone.classList.remove("dragover");
+            handleSelectedFile(event.dataTransfer.files[0]);
+        });
+
+        document.getElementById("scheduleButton").addEventListener("click", async () => {
+            const dateValue = document.getElementById("scheduleDateTime").value;
+            if (!dateValue || !state.selectedPlatforms.length) return;
+
+            const saved = await upsertPost({
+                id: state.editingPostId,
+                title: document.getElementById("postTitle").value.trim(),
+                text: document.getElementById("postContent").value.trim(),
+                media_url: document.getElementById("postMediaUrl").value.trim(),
+                pinterest_link: document.getElementById("pinterestLinkInput") ? document.getElementById("pinterestLinkInput").value.trim() : "",
+                platforms: state.selectedPlatforms,
+                post_date: new Date(dateValue).toISOString(),
+                status: "scheduled"
+            });
+
+            const index = state.posts.findIndex((item) => String(item.id) === String(saved.id));
+            if (index >= 0) state.posts.splice(index, 1, saved);
+            else state.posts.push(saved);
+
+            persistLocalPosts();
+            renderCalendar();
+            closeModal("composerModal");
+        });
+
+        document.getElementById("deletePostButton").addEventListener("click", async () => {
+            if (!state.editingPostId) return;
+            if (!window.confirm("Удалить этот пост из календаря и очереди?")) return;
+            await removePost(state.editingPostId);
+            closeModal("composerModal");
+        });
+
+        window.addEventListener("click", (event) => {
+            if (!event.target.closest(".relative")) {
+                document.querySelectorAll(".dropdown-content").forEach((dropdown) => dropdown.classList.remove("show"));
+            }
+        });
+
+        function escapeHtml(value) {
+            return String(value)
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+
+        function safeJsonParse(value, fallback) {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return fallback;
+            }
+        }
+
+        async function bootstrapApp() {
+            renderChannels();
+            loadHashtagGroups();
+            loadIdeaBoards();
+            syncPlatformButtons();
+            updateAuthUi();
+            await initializeSupabase();
+            await loadPosts();
+            renderIdeaBoards();
+            renderCalendar();
+        }
+
+        bootstrapApp();
+    </script>
 </body>
 </html>
